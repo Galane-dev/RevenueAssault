@@ -55,7 +55,6 @@ export const useStyles = createStyles(({ css }) => ({
     height: 200px; 
     overflow: hidden;
     margin-bottom: 20px;
-  
   `,
 
   flipperInner: css`
