@@ -1,168 +1,155 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Layout, Menu, Typography, Avatar, Space, Row, Col, Card, Table, Button } from "antd";
-import {
-  DashboardOutlined,
-  UserOutlined,
-  RocketOutlined,
-  FileTextOutlined,
-  DollarOutlined,
-  CalendarOutlined,
-  FolderOpenOutlined,
-  BarChartOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  MenuOutlined, // New Icon
+import React, { useEffect } from "react";
+import { Typography, Row, Col, Card, Table, Statistic, Empty, Spin } from "antd";
+import { 
+  LineChartOutlined, 
+  TeamOutlined, 
+  FileDoneOutlined,
+  ArrowUpOutlined,
+  LoadingOutlined
 } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
 import { useStyles } from "./style";
-import { useAuthActions, useAuthState } from "../providers/authProvider";
+import { useDashboardActions, useDashboardState } from "../providers/dashboardProvider";
 
-const { Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
-export default function DashboardPage() {
+export default function DashboardOverview() {
   const { styles } = useStyles();
-  const router = useRouter();
   
-  // State to control mobile sidebar
-  const [collapsed, setCollapsed] = useState(false);
-  
-  const { logout, getCurrentUser } = useAuthActions();
-  const { user } = useAuthState();
+  // Subscribe to Global Dashboard State
+  const { overview, recentOpportunities, isPending } = useDashboardState();
+  const { getDashboardOverview, getRecentOpportunities } = useDashboardActions();
 
   useEffect(() => {
-    getCurrentUser();
-  }, []);
+    // Fetch live data on mount
+    getDashboardOverview();
+    getRecentOpportunities();
+  }, [getDashboardOverview, getRecentOpportunities]);
 
-  const handleLogout = () => {
-    logout();
-    router.push("/auth");
-  };
-
-  const menuItems = [
-    { key: "1", icon: <DashboardOutlined />, label: "Dashboard" },
-    { key: "2", icon: <UserOutlined />, label: "Clients" },
-    { key: "3", icon: <RocketOutlined />, label: "Leads" },
-    { key: "4", icon: <FileTextOutlined />, label: "Proposals" },
-    { key: "5", icon: <DollarOutlined />, label: "Requests" },
-    { key: "6", icon: <CalendarOutlined />, label: "Activities" },
-    { key: "7", icon: <FolderOpenOutlined />, label: "Documents" },
-    { key: "8", icon: <BarChartOutlined />, label: "Reports" },
+  const opportunityColumns = [
+    {
+      title: "CLIENT",
+      dataIndex: "clientName",
+      key: "clientName",
+      render: (text: string) => <Text strong style={{ color: '#fff' }}>{text || 'N/A'}</Text>,
+    },
+    {
+      title: "STAGE",
+      dataIndex: "stage",
+      key: "stage",
+      render: (stage: number) => {
+        const stages: Record<number, string> = { 1: 'Discovery', 2: 'Proposal', 3: 'Negotiation', 4: 'Closed' };
+        return <Text style={{ color: '#8c8c8c' }}>{stages[stage] || 'Lead'}</Text>;
+      }
+    },
+    {
+      title: "VALUE",
+      dataIndex: "estimatedValue",
+      key: "estimatedValue",
+      render: (val: number, record: any) => (
+        <Text style={{ color: '#fff' }}>{record.currency || 'ZAR'} {val?.toLocaleString()}</Text>
+      ),
+    },
+    {
+      title: "PROBABILITY",
+      dataIndex: "probability",
+      key: "probability",
+      render: (prob: number) => (
+        <Text style={{ color: prob > 50 ? '#52c41a' : '#f5222d' }}>{prob}%</Text>
+      ),
+    },
   ];
 
+  // Show a sleek loading spinner if the initial fetch is happening
+  if (isPending && !overview) {
+    return (
+      <div style={{ height: '70vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Spin indicator={<LoadingOutlined style={{ fontSize: 48, color: '#fff' }} spin />} />
+      </div>
+    );
+  }
+
   return (
-    <Layout className={styles.layoutWrapper} hasSider>
-      {/* Mobile Toggle Button */}
-      <Button 
-        className={styles.mobileTrigger}
-        icon={<MenuOutlined />}
-        onClick={() => setCollapsed(!collapsed)}
-      />
+    <>
+      <header className={styles.header}>
+        <Title level={2} className={styles.pageTitle}>DASHBOARD OVERVIEW</Title>
+      </header>
 
-      <Sider 
-        width={280} 
-        breakpoint="lg" 
-        collapsedWidth="0" 
-        trigger={null} // Hide default trigger
-        collapsible 
-        collapsed={collapsed}
-        onBreakpoint={(broken) => {
-          // Auto-collapse when switching to mobile view
-          setCollapsed(broken);
-        }}
-        className={styles.sider}
-      >
-        <div className={styles.siderFlexContainer}>
-          <div className={styles.topSection}>
-            <div className={styles.logo}>RevenueAssault</div>
-            <Menu
-              mode="inline"
-              defaultSelectedKeys={["1"]}
-              items={menuItems}
-              className={styles.menu}
-            />
-          </div>
-
-          <div className={styles.bottomSection}>
-            <Menu
-              mode="inline"
-              selectable={false}
-              className={styles.menu}
-              onClick={({ key }) => key === "logout" && handleLogout()}
-              items={[
-                { key: "settings", icon: <SettingOutlined />, label: "Settings" },
-                { key: "logout", icon: <LogoutOutlined />, label: "Logout" },
-              ]}
-            />
-            <div className={styles.accountProfile}>
-              <Space size={12}>
-                <Avatar size="large" icon={<UserOutlined />} />
-                <div className={styles.userInfo}>
-                  <Text className={styles.userName}>
-                    {user ? `${user.firstName} ${user.lastName}` : "Admin"}
-                  </Text>
-                  <Text className={styles.userRole}>
-                    {user?.roles?.[0] || "Sales Rep"}
-                  </Text>
-                </div>
-              </Space>
+      <Row gutter={[24, 24]}>
+        {/* Metric 1: Pipeline Value */}
+        <Col xs={24} sm={12} lg={8}>
+          <Card title="PIPELINE VALUE" className={styles.kpiCard}>
+            <div className={styles.chartPlaceholder}>
+              <Statistic
+                value={overview?.opportunities?.pipelineValue || 0}
+                precision={2}
+                valueStyle={{ color: '#fff', fontSize: '28px', fontFamily: 'var(--font-monda)' }}
+                prefix={<LineChartOutlined style={{ color: '#8c8c8c' }} />}
+                suffix="ZAR"
+              />
+              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                Across {overview?.opportunities?.totalCount || 0} Deals
+              </Text>
             </div>
-          </div>
+          </Card>
+        </Col>
+
+        {/* Metric 2: Win Rate */}
+        <Col xs={24} sm={12} lg={8}>
+          <Card title="WIN RATE" className={styles.kpiCard}>
+            <div className={styles.chartPlaceholder}>
+              <Statistic
+                value={overview?.opportunities?.winRate || 0}
+                suffix="%"
+                valueStyle={{ color: '#fff', fontSize: '28px', fontFamily: 'var(--font-monda)' }}
+                prefix={<TeamOutlined style={{ color: '#8c8c8c' }} />}
+              />
+              <Text style={{ color: '#52c41a', fontSize: '12px' }}>
+                <ArrowUpOutlined /> {overview?.opportunities?.wonCount || 0} Deals Won
+              </Text>
+            </div>
+          </Card>
+        </Col>
+
+        {/* Metric 3: Active Contracts */}
+        <Col xs={24} sm={12} lg={8}>
+          <Card title="ACTIVE CONTRACTS" className={styles.kpiCard}>
+            <div className={styles.chartPlaceholder}>
+              <Statistic
+                value={overview?.contracts?.totalActiveCount || 0}
+                valueStyle={{ color: '#fff', fontSize: '28px', fontFamily: 'var(--font-monda)' }}
+                prefix={<FileDoneOutlined style={{ color: '#8c8c8c' }} />}
+              />
+              <Text style={{ color: overview?.contracts?.expiringThisMonthCount ? '#f5222d' : '#8c8c8c', fontSize: '12px' }}>
+                {overview?.contracts?.expiringThisMonthCount || 0} Expiring this month
+              </Text>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      <div className={styles.tableSection}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <Title level={4} className={styles.sectionTitle}>Recent Opportunities</Title>
+          <Text 
+            style={{ color: '#8c8c8c', cursor: 'pointer' }} 
+            onClick={() => window.location.href = '/dashboard/opportunities'}
+          >
+            View All
+          </Text>
         </div>
-      </Sider>
-
-      {/* Overlay for mobile to close sidebar when clicking outside */}
-      {!collapsed && (
-        <div 
-          className={styles.mobileOverlay} 
-          onClick={() => setCollapsed(true)} 
+        
+        <Table
+          className={styles.customTable}
+          columns={opportunityColumns}
+          dataSource={recentOpportunities}
+          rowKey="id"
+          pagination={false}
+          loading={isPending}
+          locale={{ emptyText: <Empty description="No recent opportunities" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
         />
-      )}
-
-      <Layout className={styles.mainLayout}>
-        <Content className={styles.content}>
-          <header className={styles.header}>
-            <Title level={2} className={styles.pageTitle}>KPIs</Title>
-          </header>
-
-          <Row gutter={[24, 24]}>
-            <Col xs={24} md={8}>
-              <Card title="Pipeline Chart" className={styles.kpiCard}>
-                <div className={styles.chartPlaceholder}>
-                   {/* Integrate Chart.js or Recharts here later */}
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card title="Top Sales Reps" className={styles.kpiCard}>
-                <div className={styles.chartPlaceholder} />
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card title="Expiring Contracts" className={styles.kpiCard}>
-                <div className={styles.chartPlaceholder} />
-              </Card>
-            </Col>
-          </Row>
-
-          <div className={styles.tableSection}>
-            <Title level={4} className={styles.sectionTitle}>Recent Opportunities</Title>
-            <Table
-              className={styles.customTable}
-              dataSource={[]} // Populate from /api/opportunities
-              columns={[
-                { title: 'CLIENT', dataIndex: 'client', key: 'client' },
-                { title: 'STAGE', dataIndex: 'stage', key: 'stage' },
-                { title: 'VALUE', dataIndex: 'value', key: 'value' },
-                { title: 'ASSIGNED TO', dataIndex: 'user', key: 'user' },
-              ]}
-              pagination={false}
-            />
-          </div>
-        </Content>
-      </Layout>
-    </Layout>
+      </div>
+    </>
   );
 }
