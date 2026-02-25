@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 
 export const getAxiosInstance = (): AxiosInstance => {
   const instance = axios.create({
-    baseURL: process.env.BASE_URL, // Ensure this is in your .env
+    baseURL: process.env.BASE_URL,
     headers: {
       "Content-Type": "application/json",
     },
