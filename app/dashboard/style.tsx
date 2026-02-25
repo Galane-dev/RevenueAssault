@@ -174,6 +174,19 @@ export const useStyles = createStyles(({ css }) => ({
       border-radius: 0;
     }
 
+    .ant-pagination-item-active {
+      border-color: #404040 !important;
+      background: #1a1a1a !important;
+      a { color: #fff !important; }
+    }
+
+    .ant-pagination-item, .ant-pagination-prev, .ant-pagination-next {
+      background: transparent !important;
+      border: 1px solid #1a1a1a;
+      a { color: #8c8c8c !important; }
+    }
+  
+
     .ant-table-thead > tr > th {
       background: #0a0a0a !important;
       color: #595959 !important;
@@ -250,5 +263,71 @@ sider: css`
     }
   }
 `,
+
+
+    filterSection: css`
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+  `,
+
+  searchInput: css`
+    max-width: 400px;
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    color: #fff !important;
+    height: 45px;
+    border-radius: 4px !important;
+
+    &:hover, &:focus {
+      border-color: #404040 !important;
+      box-shadow: none !important;
+    }
+
+    input {
+      background: transparent !important;
+      color: #fff !important;
+      &::placeholder { color: #595959; }
+    }
+  `,
+
+  primaryButton: css`
+    background: #fff !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-weight: 600;
+    font-family: var(--font-monda);
+    height: 45px;
+    padding: 0 24px;
+
+    &:hover {
+      background: #e6e6e6 !important;
+      color: #000 !important;
+    }
+  `,
+
+  drawerSelectPopup: css`
+    .ant-select-item {
+      color: #8c8c8c !important;
+      font-family: var(--font-monda);
+      
+      &:hover {
+        background: #1a1a1a !important;
+        color: #fff !important;
+      }
+    }
+    
+    .ant-select-item-option-selected {
+      background: #262626 !important;
+      color: #fff !important;
+      font-weight: 600;
+    }
+
+    background-color: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 4px;
+  `,
+
 
 }));
