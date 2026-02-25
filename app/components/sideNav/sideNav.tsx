@@ -46,6 +46,7 @@ export default function SideNav() {
     { key: "/dashboard/clients", icon: <UserOutlined />, label: "Clients" },
     { key: "/dashboard/opportunities", icon: <RocketOutlined />, label: "Opportunities" },
     { key: "/dashboard/proposals", icon: <FileTextOutlined />, label: "Proposals" },
+    { key: "/dashboard/contacts", icon: <UserOutlined />, label: "Contacts" },
     { key: "/dashboard/pricing", icon: <DollarOutlined />, label: "Pricing" },
     { key: "/dashboard/activities", icon: <CalendarOutlined />, label: "Activities" },
     { key: "/dashboard/documents", icon: <FolderOpenOutlined />, label: "Documents" },

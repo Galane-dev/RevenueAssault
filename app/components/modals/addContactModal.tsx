@@ -1,0 +1,117 @@
+"use client";
+
+import React, { useContext } from "react";
+import { Modal, Form, Input, Select, Button, message, Typography } from "antd";
+import { ContactActionContext, ContactStateContext } from "@/app/providers/contactProvider";
+import { ClientStateContext } from "@/app/providers/clientProvider";
+import { useStyles } from "../../dashboard/style";
+
+const { Text } = Typography;
+
+interface Props {
+    open: boolean;
+    onCancel: () => void;
+}
+
+export default function AddContactModal({ open, onCancel }: Props) {
+    const { styles } = useStyles();
+    const [form] = Form.useForm();
+    
+    // Contact Machine
+    const { isPending } = useContext(ContactStateContext);
+    const contactActions = useContext(ContactActionContext);
+    
+    // Client Machine (for the dropdown)
+    const { clients } = useContext(ClientStateContext);
+
+    const onFinish = async (values: any) => {
+        try {
+            // API: POST /api/contacts
+            await contactActions?.createContact(values);
+            message.success("Contact added successfully");
+            form.resetFields();
+            onCancel();
+        } catch (error) {
+            message.error("Failed to create contact");
+        }
+    };
+
+    return (
+        <Modal
+            title={<span style={{ color: '#fff', letterSpacing: '1px' }}>NEW CONTACT RECORD</span>}
+            open={open}
+            onCancel={onCancel}
+            footer={null}
+            styles={{ 
+                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
+                body: { background: '#0a0a0a', paddingTop: '24px' }
+            }}
+        >
+            <Form form={form} layout="vertical" onFinish={onFinish}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <Form.Item 
+                        name="firstName" 
+                        label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>FIRST NAME</Text>} 
+                        rules={[{ required: true }]}
+                        style={{ flex: 1 }}
+                    >
+                        <Input className={styles.searchInput} placeholder="John" />
+                    </Form.Item>
+                    <Form.Item 
+                        name="lastName" 
+                        label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>LAST NAME</Text>} 
+                        rules={[{ required: true }]}
+                        style={{ flex: 1 }}
+                    >
+                        <Input className={styles.searchInput} placeholder="Doe" />
+                    </Form.Item>
+                </div>
+
+                <Form.Item 
+                    name="clientId" 
+                    label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>ASSIGN TO CLIENT</Text>}
+                    rules={[{ required: true, message: 'Please select a client' }]}
+                >
+                    <Select 
+                        className={styles.searchInput} 
+                        placeholder="Select a company"
+                        showSearch
+                        optionFilterProp="children"
+                        popupClassName={styles.drawerSelectPopup}
+                    >
+                        {clients?.map(c => (
+                            <Select.Option key={c.id} value={c.id}>{c.name}</Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+                <Form.Item 
+                    name="email" 
+                    label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>EMAIL ADDRESS</Text>}
+                    rules={[{ required: true, type: 'email' }]}
+                >
+                    <Input className={styles.searchInput} placeholder="john.doe@company.com" />
+                </Form.Item>
+
+                <Form.Item 
+                    name="phone" 
+                    label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>PHONE NUMBER</Text>}
+                >
+                    <Input className={styles.searchInput} placeholder="+27..." />
+                </Form.Item>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>
+                    <Button onClick={onCancel} ghost>Cancel</Button>
+                    <Button 
+                        type="primary" 
+                        htmlType="submit" 
+                        loading={isPending} 
+                        className={styles.primaryButton}
+                    >
+                        Create Contact
+                    </Button>
+                </div>
+            </Form>
+        </Modal>
+    );
+}

@@ -6,6 +6,8 @@ import { ClientStateContext, ClientActionContext, INITIAL_STATE } from './contex
 import { setPending, setClients, setError, setFilters } from './actions';
 import { getAxiosInstance } from '../../utils/axiosInstance';
 
+export { ClientStateContext, ClientActionContext };
+
 export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(clientReducer, INITIAL_STATE);
 
