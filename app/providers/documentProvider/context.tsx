@@ -1,12 +1,12 @@
 import { createContext } from 'react';
 
 export enum DocumentCategory {
-    General = 1,
-    Contract = 2,
-    Proposal = 3,
-    Invoice = 4,
-    ID_Proof = 5,
-    Technical_Spec = 6
+    Contract = 1,
+    Proposal = 2,
+    Presentation = 3,
+    Quote = 4,
+    Report = 5,
+    Other = 6
 }
 
 export interface IDocument {

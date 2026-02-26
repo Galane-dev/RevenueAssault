@@ -27,9 +27,19 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         uploadDocument: async (formData: FormData) => {
             dispatch(setPending());
             try {
-                // Axios automatically sets multipart/form-data headers when sending FormData
-                await getAxiosInstance().post("/api/documents/upload", formData);
-                getDocuments(state.filters);
+                await getAxiosInstance().post("/api/documents/upload", formData, {
+                    // THE FIX: Explicitly tell Axios NOT to handle content-type. 
+                    // The browser must set the boundary itself.
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                    // Prevent global interceptors from trying to JSON.stringify this
+                    transformRequest: [(data) => data], 
+                });
+                
+                // Refresh the list after successful upload
+                const response = await getAxiosInstance().get("/api/documents", { params: state.filters });
+                dispatch(setDocuments(response.data));
             } catch (e) {
                 dispatch(setError());
                 throw e;
