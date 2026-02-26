@@ -71,10 +71,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
             onCancel={onCancel}
             footer={null}
             width={600}
-            styles={{ 
-                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
-                body: { background: '#0a0a0a', paddingTop: '24px' }
-            }}
+            
         >
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Form.Item 
@@ -82,7 +79,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
                     label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>REQUEST TITLE</Text>} 
                     rules={[{ required: true, message: 'Please enter a title' }]}
                 >
-                    <Input className={styles.searchInput} placeholder="e.g., Custom Discount Analysis - Acme Corp" />
+                    <Input  placeholder="e.g., Custom Discount Analysis - Acme Corp" />
                 </Form.Item>
 
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -93,7 +90,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
                         style={{ flex: 1 }}
                     >
                         <Select 
-                            className={styles.searchInput} 
+                             
                             placeholder="Select Client"
                             showSearch
                             optionFilterProp="children"
@@ -111,7 +108,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
                         style={{ flex: 1 }}
                     >
                         <Select 
-                            className={styles.searchInput} 
+                             
                             placeholder="Select Opportunity (Optional)"
                             allowClear
                             showSearch
@@ -132,7 +129,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
                         rules={[{ required: true }]}
                         style={{ flex: 1 }}
                     >
-                        <Select className={styles.searchInput} placeholder="Select Priority" popupClassName={styles.drawerSelectPopup}>
+                        <Select  placeholder="Select Priority" popupClassName={styles.drawerSelectPopup}>
                             <Select.Option value={1}>Low</Select.Option>
                             <Select.Option value={2}>Medium</Select.Option>
                             <Select.Option value={3}>High</Select.Option>
@@ -147,7 +144,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
                         style={{ flex: 1 }}
                     >
                         <DatePicker 
-                            className={styles.searchInput} 
+                             
                             style={{ width: '100%' }} 
                             disabledDate={(current) => current && current < dayjs().startOf('day')}
                         />
@@ -159,7 +156,7 @@ export default function AddPricingRequestModal({ open, onCancel }: Props) {
                     label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>DESCRIPTION & REQUIREMENTS</Text>}
                 >
                     <TextArea 
-                        className={styles.searchInput} 
+                         
                         placeholder="Provide details on volume discounts, custom terms, etc." 
                         rows={4} 
                     />

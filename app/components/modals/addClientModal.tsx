@@ -36,8 +36,6 @@ export default function AddClientModal({ open, onCancel }: Props) {
             footer={null}
             styles={{ 
                 mask: { backdropFilter: 'blur(4px)' },
-                body: { background: '#0a0a0a', border: '1px solid #1a1a1a' },
-                header: { background: '#0a0a0a' }
             }}
             modalRender={(modal) => (
             <div style={{ border: '1px solid #1a1a1a', borderRadius: '8px', overflow: 'hidden' }}>
@@ -47,22 +45,22 @@ export default function AddClientModal({ open, onCancel }: Props) {
         >
             <Form form={form} layout="vertical" onFinish={onFinish} style={{ marginTop: 24 }}>
                 <Form.Item name="name" label={<Text color="#8c8c8c">COMPANY NAME</Text>} rules={[{ required: true }]}>
-                    <Input className={styles.searchInput} placeholder="e.g. Acme Corp" />
+                    <Input placeholder="e.g. Acme Corp" />
                 </Form.Item>
 
                 <Form.Item name="industry" label={<Text color="#8c8c8c">INDUSTRY</Text>} rules={[{ required: true }]}>
-                    <Input className={styles.searchInput} placeholder="e.g. Finance" />
+                    <Input  placeholder="e.g. Finance" />
                 </Form.Item>
 
                 <Form.Item name="clientType" label={<Text color="#8c8c8c">TYPE</Text>} initialValue="1">
-                    <Select className={styles.searchInput} popupClassName={styles.drawerSelectPopup}>
+                    <Select  popupClassName={styles.drawerSelectPopup}>
                         <Select.Option value="1">Corporate</Select.Option>
                         <Select.Option value="2">SME</Select.Option>
                     </Select>
                 </Form.Item>
 
                 <Form.Item name="website" label={<Text color="#8c8c8c">WEBSITE URL</Text>}>
-                    <Input className={styles.searchInput} placeholder="https://..." />
+                    <Input  placeholder="https://..." />
                 </Form.Item>
 
                 <Form.Item style={{ marginBottom: 0, textAlign: 'right', marginTop: 32 }}>

@@ -87,9 +87,7 @@ function ProposalsContent() {
             key: "actions",
             render: (record: any) => (
                 <Space size="middle">
-                    <Tooltip title="View Details">
-                        <Button type="text" icon={<EyeOutlined />} style={{ color: '#8c8c8c' }} />
-                    </Tooltip>
+                    
 
                     {record.status === 1 && (
                         <Tooltip title="Submit for Approval">

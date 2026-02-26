@@ -97,7 +97,7 @@ function ContactsContent() {
             render: (text: string, record: any) => (
                 <Space direction="vertical" size={0}>
                     <Text style={{ color: '#d9d9d9' }}>{text || "Stakeholder"}</Text>
-                    {record.isPrimaryContact && <Tag color="blue" style={{ fontSize: '10px', marginTop: 4 }}>PRIMARY</Tag>}
+                    {record.isPrimaryContact && <Tag color="#21c718"  style={{ fontSize: '10px', marginTop: 4, backgroundColor:" #00cc0b62" }}>PRIMARY</Tag>}
                 </Space>
             )
         },
@@ -111,7 +111,7 @@ function ContactsContent() {
                         type="text" 
                         disabled={record.isPrimaryContact}
                         onClick={() => contactActions?.setPrimary(record.id)}
-                        style={{ color: record.isPrimaryContact ? '#262626' : '#1677ff', fontSize: '12px' }}
+                        style={{ color: record.isPrimaryContact ? '#262626' : '#138c1d', fontSize: '12px' }}
                     >
                         {record.isPrimaryContact ? "PRIMARY" : "SET AS PRIMARY"}
                     </Button>
@@ -156,7 +156,6 @@ function ContactsContent() {
             <div className={styles.filterSection} style={{ marginBottom: 24, gap: 16 }}>
                 <Input 
                     placeholder="Search by name, email or phone..." 
-                    className={styles.searchInput}
                     style={{ maxWidth: 400 }}
                     prefix={<SearchOutlined style={{ color: '#595959' }} />}
                     value={filters.searchTerm}
@@ -164,7 +163,6 @@ function ContactsContent() {
                 />
                 <Select 
                     placeholder="Filter by Client" 
-                    className={styles.searchInput}
                     style={{ width: 250 }}
                     allowClear
                     onChange={(val) => contactActions?.updateFilters({ clientId: val, pageNumber: 1 })}

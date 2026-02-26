@@ -75,21 +75,18 @@ export default function LogActivityModal({ open, onCancel, initialRelatedType, i
             onCancel={onCancel}
             footer={null}
             width={650}
-            styles={{ 
-                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
-                body: { background: '#0a0a0a', paddingTop: '24px' }
-            }}
+
         >
             <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ priority: 2, type: 1 }}>
                 <Row gutter={16}>
                     <Col span={16}>
                         <Form.Item name="subject" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>SUBJECT</Text>} rules={[{ required: true }]}>
-                            <Input className={styles.searchInput} placeholder="e.g., Follow-up on proposal" />
+                            <Input  placeholder="e.g., Follow-up on proposal" />
                         </Form.Item>
                     </Col>
                     <Col span={8}>
                         <Form.Item name="type" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>ACTIVITY TYPE</Text>} rules={[{ required: true }]}>
-                            <Select className={styles.searchInput} popupClassName={styles.drawerSelectPopup}>
+                            <Select  popupClassName={styles.drawerSelectPopup}>
                                 <Select.Option value={ActivityType.Task}>Task</Select.Option>
                                 <Select.Option value={ActivityType.Call}>Call</Select.Option>
                                 <Select.Option value={ActivityType.Meeting}>Meeting</Select.Option>
@@ -102,7 +99,7 @@ export default function LogActivityModal({ open, onCancel, initialRelatedType, i
                 <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item name="relatedToType" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>LINK TO ENTITY</Text>} rules={[{ required: true }]}>
-                            <Select className={styles.searchInput} popupClassName={styles.drawerSelectPopup}>
+                            <Select  popupClassName={styles.drawerSelectPopup}>
                                 <Select.Option value={1}>Client</Select.Option>
                                 <Select.Option value={2}>Opportunity</Select.Option>
                                 <Select.Option value={3}>Pricing Request</Select.Option>
@@ -121,7 +118,7 @@ export default function LogActivityModal({ open, onCancel, initialRelatedType, i
                                         <Select 
                                             showSearch 
                                             optionFilterProp="children"
-                                            className={styles.searchInput} 
+                                             
                                             popupClassName={styles.drawerSelectPopup}
                                         >
                                             {type === 1 
@@ -139,12 +136,12 @@ export default function LogActivityModal({ open, onCancel, initialRelatedType, i
                 <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item name="dueDate" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>DUE DATE & TIME</Text>} rules={[{ required: true }]}>
-                            <DatePicker showTime className={styles.searchInput} style={{ width: '100%' }} />
+                            <DatePicker showTime  style={{ width: '100%' }} />
                         </Form.Item>
                     </Col>
                     <Col span={6}>
                         <Form.Item name="priority" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>PRIORITY</Text>}>
-                            <Select className={styles.searchInput} popupClassName={styles.drawerSelectPopup}>
+                            <Select  popupClassName={styles.drawerSelectPopup}>
                                 <Select.Option value={ActivityPriority.Low}>Low</Select.Option>
                                 <Select.Option value={ActivityPriority.Medium}>Medium</Select.Option>
                                 <Select.Option value={ActivityPriority.High}>High</Select.Option>
@@ -153,17 +150,17 @@ export default function LogActivityModal({ open, onCancel, initialRelatedType, i
                     </Col>
                     <Col span={6}>
                         <Form.Item name="duration" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>DURATION (MIN)</Text>}>
-                            <InputNumber className={styles.searchInput} style={{ width: '100%' }} min={0} step={15} />
+                            <InputNumber  style={{ width: '100%' }} min={0} step={15} />
                         </Form.Item>
                     </Col>
                 </Row>
 
                 <Form.Item name="location" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>LOCATION / LINK</Text>}>
-                    <Input className={styles.searchInput} placeholder="Teams link or physical office" />
+                    <Input  placeholder="Teams link or physical office" />
                 </Form.Item>
 
                 <Form.Item name="description" label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>DESCRIPTION</Text>}>
-                    <TextArea className={styles.searchInput} rows={3} placeholder="Notes about this activity..." />
+                    <TextArea  rows={3} placeholder="Notes about this activity..." />
                 </Form.Item>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>

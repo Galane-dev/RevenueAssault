@@ -59,18 +59,15 @@ export default function CreateOpportunityModal({ open, onCancel }: Props) {
             onCancel={onCancel}
             footer={null}
             styles={{ 
-                body: { background: '#0a0a0a', padding: '24px' },
-                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a' }
             }}
         >
             <Form form={form} layout="vertical" onFinish={onFinish} style={{ marginTop: 24 }}>
                 <Form.Item name="title" label={<Text color="#8c8c8c">DEAL TITLE</Text>} rules={[{ required: true }]}>
-                    <Input className={styles.searchInput} placeholder="e.g. Q3 Software Licensing" />
+                    <Input placeholder="e.g. Q3 Software Licensing" />
                 </Form.Item>
 
                 <Form.Item name="clientId" label={<Text color="#8c8c8c">CLIENT / COMPANY</Text>} rules={[{ required: true }]}>
                     <Select 
-                        className={styles.searchInput} 
                         showSearch
                         optionFilterProp="children"
                         popupClassName={styles.drawerSelectPopup}
@@ -84,7 +81,6 @@ export default function CreateOpportunityModal({ open, onCancel }: Props) {
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <Form.Item name="estimatedValue" label={<Text color="#8c8c8c">EST. VALUE</Text>}>
                     <InputNumber 
-                        className={styles.searchInput} 
                         style={{ width: '100%' }} 
                         // Remove formatter for the raw value sent to API
                         placeholder="50000"
@@ -99,10 +95,10 @@ export default function CreateOpportunityModal({ open, onCancel }: Props) {
 
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <Form.Item name="probability" label={<Text color="#8c8c8c">PROBABILITY (%)</Text>} style={{ flex: 1 }}>
-                        <InputNumber className={styles.searchInput} style={{ width: '100%' }} min={0} max={100} />
+                        <InputNumber style={{ width: '100%' }} min={0} max={100} />
                     </Form.Item>
                     <Form.Item name="expectedCloseDate" label={<Text color="#8c8c8c">CLOSE DATE</Text>} style={{ flex: 1 }}>
-                        <DatePicker className={styles.searchInput} style={{ width: '100%' }} />
+                        <DatePicker  style={{ width: '100%' }} />
                     </Form.Item>
                 </div>
 

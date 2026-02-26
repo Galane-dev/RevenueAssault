@@ -22,7 +22,7 @@ import { withAuth } from "../../hoc/withAuth";
 const { Title, Text } = Typography;
 
 const STAGES: Record<number, { label: string, color: string }> = {
-    1: { label: "LEAD / DISCOVERY", color: "default" },
+    1: { label: "LEAD", color: "default" },
     2: { label: "QUALIFICATION", color: "cyan" },
     3: { label: "PROPOSAL", color: "blue" },
     4: { label: "NEGOTIATION", color: "orange" },
@@ -51,13 +51,7 @@ function OpportunitiesContent() {
     };
 
     const handleDeleteOpportunity = (id: string) => {
-        if (window.confirm("Are you sure you want to delete this opportunity?")) {
-            try {
-                actions?.deleteOpportunity(id);
-            } catch (error) {
-                console.error("Failed to delete opportunity", error);
-            }
-        }
+      
     };
 
  

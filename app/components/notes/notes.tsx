@@ -2,12 +2,15 @@ import { useContext, useEffect, useState } from 'react';
 import { List, Input, Button, Checkbox, Avatar, Typography, message } from 'antd';
 import { NoteStateContext, NoteActionContext } from '@/app/providers/noteProvider';
 import { INoteStateContext, INoteActionContext } from '@/app/providers/noteProvider/context';
+import { useStyles } from '../../dashboard/style';
+
 const { Text } = Typography;
 
 export const NoteSection = ({ type, id }: { type: number, id: string }) => {
     // 1. Force type assertion to prevent 'unknown' issues
     const { notes, isPending } = useContext(NoteStateContext) as INoteStateContext;
     const noteActions = useContext(NoteActionContext) as INoteActionContext;
+    const { styles } = useStyles();
     
     const [content, setContent] = useState('');
     const [isPrivate, setIsPrivate] = useState(false);
@@ -34,14 +37,8 @@ export const NoteSection = ({ type, id }: { type: number, id: string }) => {
                 style={{ background: '#1f1f1f', color: '#fff', borderColor: '#303030' }}
             />
             <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Checkbox 
-                    checked={isPrivate} 
-                    onChange={e => setIsPrivate(e.target.checked)}
-                    style={{ color: '#8c8c8c' }}
-                >
-                    Private Note
-                </Checkbox>
-                <Button type="primary" onClick={onSave} loading={isPending}>Add Note</Button>
+                
+                <Button className={styles.primaryButton} type="primary" onClick={onSave} loading={isPending}>Add Note</Button>
             </div>
             
             <List
@@ -65,7 +62,7 @@ export const NoteSection = ({ type, id }: { type: number, id: string }) => {
                         style={{ borderBottom: '1px solid #303030' }}
                     >
                         <List.Item.Meta
-                            avatar={<Avatar style={{ backgroundColor: '#1890ff' }}>{item.createdBy?.[0] || 'U'}</Avatar>}
+                            avatar={<Avatar style={{ backgroundColor: '#2c2c2c' }}>{item.createdBy?.[0] || 'U'}</Avatar>}
                             title={<Text style={{ color: '#d9d9d9' }}>{item.createdBy}</Text>}
                             description={
                                 <div>

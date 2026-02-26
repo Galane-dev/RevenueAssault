@@ -66,7 +66,7 @@ function PricingContent() {
             dataIndex: "priority",
             key: "priority",
             render: (priority: number) => (
-                <Tag color={priorityMap[priority as PricingPriority]?.color} style={{ borderRadius: '2px' }}>
+                <Tag color={priorityMap[priority as PricingPriority]?.color} style={{ borderRadius: '2px',backgroundColor:' #111111', color: priorityMap[priority as PricingPriority]?.color }}>
                     {priorityMap[priority as PricingPriority]?.label}
                 </Tag>
             )
@@ -95,36 +95,7 @@ function PricingContent() {
             )
         },
         {
-            title: "ACTIONS",
-            key: "actions",
-            align: 'right' as const,
-            render: (record: any) => (
-                <Space>
-                    {record.status === PricingRequestStatus.Pending && (
-                        <Can perform="ASSIGN_PRICING_REQUEST">
-                            <Button 
-                                size="small"
-                                type="primary" 
-                                ghost
-                                icon={<UserAddOutlined />}
-                                onClick={() => pricingActions?.assignRequest(record.id, "current-user-id")} // You'll need real user ID here
-                            >
-                                ASSIGN TO ME
-                            </Button>
-                        </Can>
-                    )}
-                    {record.status === PricingRequestStatus.InProgress && (
-                        <Button 
-                            size="small"
-                            type="primary"
-                            icon={<CheckCircleOutlined />}
-                            onClick={() => pricingActions?.completeRequest(record.id)}
-                        >
-                            COMPLETE
-                        </Button>
-                    )}
-                </Space>
-            )
+            
         }
     ];
 

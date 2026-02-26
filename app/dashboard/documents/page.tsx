@@ -146,7 +146,7 @@ function DocumentManagerContent() {
                         <Button 
                             type="text" 
                             icon={<DownloadOutlined />} 
-                            style={{ color: '#1890ff' }}
+                            style={{ color: '#e2e2e2' }}
                             onClick={() => documentActions?.downloadDocument(record.id, record.fileName)}
                         />
                     </Tooltip>
@@ -223,7 +223,7 @@ function DocumentManagerContent() {
                             }}
                             onClick={() => fileInputRef.current?.click()}
                         >
-                            <CloudUploadOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: 12 }} />
+                            <CloudUploadOutlined style={{ fontSize: '32px', color: '#bcbcbc', marginBottom: 12 }} />
                             <p style={{ color: '#d9d9d9', margin: 0 }}>Select File to Upload</p>
                             <p style={{ color: '#595959', fontSize: '12px', marginTop: 4 }}>PDF, DOCX, XLSX up to 50MB</p>
                         </div>

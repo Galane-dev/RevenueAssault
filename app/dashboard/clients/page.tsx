@@ -38,7 +38,7 @@ function ClientsContent() {
     confirm({
       title: `Delete ${name}?`,
       icon: <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />,
-      content: 'This action cannot be undone and will remove the client from the database.',
+      content: 'This action cannot be undone and will change status to inactive.',
       okText: 'Delete',
       okType: 'danger',
       cancelText: 'Cancel',

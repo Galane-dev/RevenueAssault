@@ -53,10 +53,7 @@ export default function CreateProposalModal({ open, onCancel }: Props) {
             onCancel={onCancel}
             width={800}
             footer={null}
-            styles={{ 
-                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
-                body: { background: '#0a0a0a', paddingTop: '24px' }
-            }}
+            
         >
             <Form 
                 form={form} 
@@ -70,23 +67,23 @@ export default function CreateProposalModal({ open, onCancel }: Props) {
             >
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <Form.Item name="opportunityId" label="LINK TO OPPORTUNITY" rules={[{ required: true, message: 'Please link to a deal' }]} style={{ flex: 2 }}>
-                        <Select className={styles.searchInput} placeholder="Select a deal" popupClassName={styles.drawerSelectPopup}>
+                        <Select  placeholder="Select a deal" popupClassName={styles.drawerSelectPopup}>
                             {opportunities?.map(opp => (
                                 <Select.Option key={opp.id} value={opp.id}>{opp.title}</Select.Option>
                             ))}
                         </Select>
                     </Form.Item>
                     <Form.Item name="currency" label="CURRENCY" style={{ flex: 1 }}>
-                        <Input className={styles.searchInput} readOnly />
+                        <Input  readOnly />
                     </Form.Item>
                 </div>
 
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <Form.Item name="title" label="PROPOSAL TITLE" rules={[{ required: true, message: 'Title is required' }]} style={{ flex: 2 }}>
-                        <Input className={styles.searchInput} placeholder="e.g. Software License Implementation" />
+                        <Input  placeholder="e.g. Software License Implementation" />
                     </Form.Item>
                     <Form.Item name="validUntil" label="VALID UNTIL" rules={[{ required: true, message: 'Expiry date is required' }]} style={{ flex: 1 }}>
-                        <DatePicker className={styles.searchInput} style={{ width: '100%' }} />
+                        <DatePicker  style={{ width: '100%' }} />
                     </Form.Item>
                 </div>
 
@@ -99,16 +96,16 @@ export default function CreateProposalModal({ open, onCancel }: Props) {
                             {fields.map(({ key, name, ...restField }) => (
                                 <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
                                     <Form.Item {...restField} name={[name, 'description']} rules={[{ required: true, message: 'Required' }]}>
-                                        <Input className={styles.searchInput} placeholder="Description" style={{ width: 250 }} />
+                                        <Input  placeholder="Description" style={{ width: 250 }} />
                                     </Form.Item>
                                     <Form.Item {...restField} name={[name, 'quantity']} rules={[{ required: true }]}>
-                                        <InputNumber className={styles.searchInput} placeholder="Qty" min={1} />
+                                        <InputNumber  placeholder="Qty" min={1} />
                                     </Form.Item>
                                     <Form.Item {...restField} name={[name, 'unitPrice']} rules={[{ required: true }]}>
-                                        <InputNumber className={styles.searchInput} placeholder="Price" min={0} />
+                                        <InputNumber  placeholder="Price" min={0} />
                                     </Form.Item>
                                     <Form.Item {...restField} name={[name, 'taxRate']}>
-                                        <InputNumber className={styles.searchInput} placeholder="Tax %" min={0} />
+                                        <InputNumber  placeholder="Tax %" min={0} />
                                     </Form.Item>
                                     {fields.length > 1 && (
                                         <DeleteOutlined style={{ color: '#ff4d4f' }} onClick={() => remove(name)} />

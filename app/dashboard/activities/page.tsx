@@ -233,8 +233,6 @@ function ActivityFeedContent() {
                 onChange={setActiveTab}
                 items={[
                     { key: "all", label: "ALL ACTIVITIES" },
-                    { key: "upcoming", label: "UPCOMING TASKS" },
-                    { key: "overdue", label: <span style={{ color: '#ff4d4f' }}>OVERDUE</span> },
                 ]}
             />
 

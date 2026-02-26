@@ -5,6 +5,7 @@ import Navbar from "./components/navbar/navbar";
 import "./globals.css";
 import { AuthProvider } from "./providers/authProvider";
 import { usePathname } from "next/navigation";
+import { ConfigProvider, theme } from "antd";
 
 const monda = Monda({
   subsets: ["latin"],
@@ -21,10 +22,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={monda.variable} style={{ margin: 0, background: 'black' }}>
-        <AuthProvider>
-          {!shouldHideNavbar && <Navbar />}
-          {children}
-        </AuthProvider>
+        <ConfigProvider 
+          theme={{ 
+            algorithm: theme.darkAlgorithm,
+            token: {
+              colorText: "#ffffff",
+              colorTextSecondary: "#a80808",
+              colorTextTertiary: "#cbcaca",
+              colorTextQuaternary: "#d9d5d5",
+            }
+          }}
+        >
+          <AuthProvider>
+            {!shouldHideNavbar && <Navbar />}
+            {children}
+          </AuthProvider>
+        </ConfigProvider>
           
       </body>
     </html>

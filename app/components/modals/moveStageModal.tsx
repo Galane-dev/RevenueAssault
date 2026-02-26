@@ -81,7 +81,6 @@ export default function MoveStageModal({ opportunity, open, onCancel }: Props) {
       width={450}
       styles={{
         mask: { backdropFilter: 'blur(4px)' },
-        header: { background: 'transparent', borderBottom: '1px solid #1a1a1a' },
       }}
     >
       <Form
@@ -97,7 +96,7 @@ export default function MoveStageModal({ opportunity, open, onCancel }: Props) {
           rules={[{ required: true, message: 'Please select a stage' }]}
         >
           <Select 
-            className={styles.searchInput} 
+             
             popupClassName={styles.drawerSelectPopup}
             placeholder="Select new stage"
           >
@@ -115,7 +114,7 @@ export default function MoveStageModal({ opportunity, open, onCancel }: Props) {
           rules={[{ required: true, message: 'Transition reason is required' }]}
         >
           <Input.TextArea
-            className={styles.searchInput}
+            
             placeholder="e.g., Client requested a final quote adjustment..."
             rows={4}
             style={{ 

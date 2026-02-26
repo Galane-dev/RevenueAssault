@@ -80,8 +80,6 @@ export default function CreateContractModal({ open, onCancel }: Props) {
             width={700}
             footer={null}
             styles={{ 
-                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
-                body: { background: '#0a0a0a', paddingTop: '24px' },
                 mask: { backdropFilter: 'blur(4px)' }
             }}
             modalRender={(modal) => (
@@ -106,7 +104,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                     rules={[{ required: true, message: 'Please select a client' }]}
                 >
                     <Select 
-                        className={styles.searchInput} 
+                         
                         placeholder="Select a client" 
                         popupClassName={styles.drawerSelectPopup}
                     >
@@ -125,7 +123,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                     rules={[{ required: true, message: 'Title is required' }]}
                 >
                     <Input 
-                        className={styles.searchInput} 
+                         
                         placeholder="e.g. Annual Software License Agreement" 
                     />
                 </Form.Item>
@@ -138,7 +136,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         rules={[{ required: true, message: 'Start date is required' }]}
                         style={{ flex: 1 }}
                     >
-                        <DatePicker className={styles.searchInput} style={{ width: '100%' }} />
+                        <DatePicker  style={{ width: '100%' }} />
                     </Form.Item>
                     <Form.Item 
                         name="endDate" 
@@ -146,7 +144,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         rules={[{ required: true, message: 'End date is required' }]}
                         style={{ flex: 1 }}
                     >
-                        <DatePicker className={styles.searchInput} style={{ width: '100%' }} />
+                        <DatePicker  style={{ width: '100%' }} />
                     </Form.Item>
                 </div>
 
@@ -159,7 +157,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         style={{ flex: 2 }}
                     >
                         <InputNumber 
-                            className={styles.searchInput}
+                            
                             placeholder="0.00"
                             min={0}
                             precision={2}
@@ -171,7 +169,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         label={<Text color="#8c8c8c">CURRENCY</Text>}
                         style={{ flex: 1 }}
                     >
-                        <Input className={styles.searchInput} readOnly />
+                        <Input  readOnly />
                     </Form.Item>
                 </div>
 
@@ -184,7 +182,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         style={{ flex: 1 }}
                     >
                         <Select 
-                            className={styles.searchInput} 
+                             
                             placeholder="Select an opportunity" 
                             popupClassName={styles.drawerSelectPopup}
                         >
@@ -202,7 +200,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         style={{ flex: 1 }}
                     >
                         <Select 
-                            className={styles.searchInput} 
+                             
                             placeholder="Select a proposal" 
                             popupClassName={styles.drawerSelectPopup}
                         >
@@ -224,7 +222,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                         initialValue={90}
                     >
                         <InputNumber 
-                            className={styles.searchInput}
+                            
                             min={0}
                             precision={0}
                             style={{ width: '100%' }}
@@ -246,7 +244,7 @@ export default function CreateContractModal({ open, onCancel }: Props) {
                     label={<Text color="#8c8c8c">TERMS & CONDITIONS</Text>}
                 >
                     <Input.TextArea 
-                        className={styles.searchInput}
+                        
                         placeholder="Enter key terms, conditions, or special clauses..."
                         rows={4}
                         style={{ resize: 'none' }}
