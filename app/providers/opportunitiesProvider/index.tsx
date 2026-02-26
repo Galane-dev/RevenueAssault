@@ -42,7 +42,7 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
             try {
                 // The API expects: { newStage: int, notes: string, lossReason: string }
                 const payload = { 
-                    newStage: Number(stage), 
+                    stage: Number(stage), 
                     notes: reason || "Stage updated via pipeline",
                     // If stage is 6 (LOST), we send the reason as lossReason, otherwise null
                     lossReason: stage === 6 ? reason : "" 
