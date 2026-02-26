@@ -16,7 +16,8 @@ import CreateOpportunityModal from "../../components/modals/addOpportunityModal"
 import MoveStageModal from "../../components/modals/moveStageModal";
 import { NoteSection } from "../../components/notes/notes"; 
 import { IOpportunity } from "@/app/providers/opportunitiesProvider/context";
-import { Can } from "../../components/auth/can"; // Import our new permission wrapper
+import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 
@@ -61,7 +62,7 @@ function OpportunitiesContent() {
             dataIndex: "title",
             key: "title",
             render: (text: string) => (
-                <Text strong style={{ color: '#1890ff', cursor: 'pointer' }}>
+                <Text strong style={{ color: '#ffff' }}>
                     {text || "Untitled Deal"}
                 </Text>
             )
@@ -251,7 +252,7 @@ function OpportunitiesContent() {
     );
 }
 
-export default function OpportunitiesPage() {
+export default withAuth(function OpportunitiesPage() {
     return (
        <ClientProvider>
             <OpportunityProvider>
@@ -261,4 +262,4 @@ export default function OpportunitiesPage() {
             </OpportunityProvider>
        </ClientProvider> 
     );
-}
+});

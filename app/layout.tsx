@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   // Define routes where the public Landing Page Navbar should NOT appear
-  const hideNavbarRoutes = ["/auth", "/dashboard"];
+  const hideNavbarRoutes = ["/dashboard"];
   const shouldHideNavbar = hideNavbarRoutes.some((route) => pathname.startsWith(route));
   return (
     <html lang="en">

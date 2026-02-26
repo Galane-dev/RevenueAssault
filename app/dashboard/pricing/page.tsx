@@ -21,6 +21,7 @@ import { OpportunityProvider } from "../../providers/opportunitiesProvider";
 // Components
 import AddPricingRequestModal from "../../components/modals/addPricingRequestModal";
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 
@@ -202,7 +203,7 @@ function PricingContent() {
     );
 }
 
-export default function PricingPage() {
+export default withAuth(function PricingPage() {
     return (
         <ClientProvider>
             <OpportunityProvider>
@@ -212,4 +213,4 @@ export default function PricingPage() {
             </OpportunityProvider>
         </ClientProvider>
     );
-}
+});

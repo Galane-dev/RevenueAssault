@@ -24,6 +24,7 @@ import { DocumentCategory } from "@/app/providers/documentProvider/context";
 
 // Components
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 import relativeTime from "dayjs/plugin/relativeTime"; // 1. Import the plugin
 
@@ -275,10 +276,10 @@ function DocumentManagerContent() {
     );
 }
 
-export default function DocumentPage() {
+export default withAuth(function DocumentPage() {
     return (
         <DocumentProvider>
             <DocumentManagerContent />
         </DocumentProvider>
     );
-}
+});

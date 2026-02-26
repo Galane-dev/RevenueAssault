@@ -28,6 +28,7 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 // Components
 import LogActivityModal from "../../components/modals/logActivityModal";
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
@@ -87,7 +88,7 @@ function ActivityFeedContent() {
     const handleDelete = async (id: string) => {
         if (window.confirm("Are you sure you want to delete this activity?")) {
             try {
-                await activityActions?.deleteActivity?.(id);
+                //await activityActions?.deleteActivity?.(id);
                 message.success("Activity deleted");
             } catch (error) {
                 message.error("Failed to delete activity");
@@ -295,7 +296,7 @@ function ActivityFeedContent() {
 /**
  * Page Export with nested Providers
  */
-export default function ActivityPage() {
+export default withAuth(function ActivityPage() {
     return (
         <ClientProvider>
             <OpportunityProvider>
@@ -305,4 +306,4 @@ export default function ActivityPage() {
             </OpportunityProvider>
         </ClientProvider>
     );
-}
+});

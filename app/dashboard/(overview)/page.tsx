@@ -9,13 +9,14 @@ import {
   ArrowUpOutlined,
   LoadingOutlined
 } from "@ant-design/icons";
-import { useStyles } from "./style";
-import { useDashboardActions, useDashboardState } from "../providers/dashboardProvider";
-import { Can } from "../components/auth/can";
+import { useStyles } from "../style";
+import { useDashboardActions, useDashboardState } from "../../providers/dashboardProvider";
+import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 
-export default function DashboardOverview() {
+function DashboardOverview() {
   const { styles } = useStyles();
   
   // Subscribe to Global Dashboard State
@@ -167,3 +168,5 @@ export default function DashboardOverview() {
     </>
   );
 }
+
+export default withAuth(DashboardOverview);

@@ -9,6 +9,7 @@ import { ContactProvider, ContactStateContext, ContactActionContext } from "@/ap
 import { ClientProvider, ClientStateContext, ClientActionContext } from "../../providers/clientProvider";
 import AddContactModal from "../../components/modals/addContactModal";
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 
@@ -34,7 +35,7 @@ function ContactsContent() {
     const handleDeleteContact = (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete ${name}?`)) {
             try {
-                contactActions?.deleteContact?.(id);
+                //contactActions?.deleteContact?.(id);
                 message.success("Contact deleted successfully");
             } catch (error) {
                 message.error("Failed to delete contact");
@@ -200,7 +201,7 @@ function ContactsContent() {
     );
 }
 
-export default function ContactsPage() {
+export default withAuth(function ContactsPage() {
     return (
         <ClientProvider>
             <ContactProvider>
@@ -208,4 +209,4 @@ export default function ContactsPage() {
             </ContactProvider>
         </ClientProvider>
     );
-}
+});

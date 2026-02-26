@@ -22,6 +22,7 @@ import { IReportStateContext, IReportActionContext } from "@/app/providers/repor
 
 // Components
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -239,7 +240,7 @@ function SalesDashboardContent() {
 }
 
 // Ensure proper wrapping with Provider
-export default function SalesDashboardPage() {
+export default withAuth(function SalesDashboardPage() {
     return (
         <Can 
             perform="VIEW_REPORTS"
@@ -259,4 +260,4 @@ export default function SalesDashboardPage() {
             </ReportProvider>
         </Can>
     );
-}
+});

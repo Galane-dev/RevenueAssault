@@ -15,6 +15,7 @@ import { ClientStateContext, ClientActionContext } from "@/app/providers/clientP
 import { ClientProvider } from "@/app/providers/clientProvider";
 import AddClientModal from "../../components/modals/addClientModal";
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -176,10 +177,10 @@ function ClientsContent() {
 }
 
 // Wrap the content with the Provider
-export default function ClientsPage() {
+export default withAuth(function ClientsPage() {
   return (
     <ClientProvider>
       <ClientsContent />
     </ClientProvider>
   );
-}
+});

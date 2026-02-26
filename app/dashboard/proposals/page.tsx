@@ -19,6 +19,7 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 // Components
 import CreateProposalModal from "../../components/modals/createProposal";
 import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 
@@ -197,7 +198,7 @@ function ProposalsContent() {
     );
 }
 
-export default function ProposalsPage() {
+export default withAuth(function ProposalsPage() {
     return (
         <OpportunityProvider>
             <ProposalProvider>
@@ -205,4 +206,4 @@ export default function ProposalsPage() {
             </ProposalProvider>
         </OpportunityProvider>
     );
-}
+});
