@@ -11,7 +11,6 @@ import {
   CalendarOutlined,
   FolderOpenOutlined,
   BarChartOutlined,
-  SettingOutlined,
   LogoutOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
@@ -103,7 +102,6 @@ export default function SideNav() {
                 if (key === "settings") router.push("/dashboard/settings");
               }}
               items={[
-                { key: "settings", icon: <SettingOutlined />, label: "Settings" },
                 { key: "logout", icon: <LogoutOutlined />, label: "Logout" },
               ]}
             />
@@ -117,7 +115,7 @@ export default function SideNav() {
                 />
                 <div className={styles.userInfo}>
                   <Text className={styles.userName}>
-                    {user ? `${user.firstName} ${user.lastName}` : "Admin"}
+                    {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || "User"}
                   </Text>
                   <Text className={styles.userRole}>
                     {user?.roles?.[0] || "Sales Executive"}

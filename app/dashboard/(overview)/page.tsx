@@ -24,10 +24,10 @@ function DashboardOverview() {
   const { getDashboardOverview, getRecentOpportunities } = useDashboardActions();
 
   useEffect(() => {
-    // Fetch live data on mount
+    // Fetch live data on mount only
     getDashboardOverview();
     getRecentOpportunities();
-  }, [getDashboardOverview, getRecentOpportunities]);
+  }, []);
 
   const opportunityColumns = [
     {

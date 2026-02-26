@@ -62,7 +62,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.error("Failed to fetch opportunities", e);
       }
     }
-  }), [dispatch, state.overview]);
+  }), [dispatch, state]);
 
   return (
     <DashboardStateContext.Provider value={state}>
