@@ -13,32 +13,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Log in and get a JWT token
     const login = async (credentials: any) => {
         dispatch(authPending());
-        const endpoint = "/auth/login";
-        await instance.post(endpoint, credentials)
-            .then((response) => {
-                const user: IUser = response.data;
-                // Store token for session persistence
-                localStorage.setItem("token", user.token || "");
-                dispatch(loginSuccess(user));
-            })
-            .catch(() => {
-                dispatch(authError());
-            });
+        const endpoint = "/api/auth/login"; // v2 path
+        try {
+            const response = await instance.post(endpoint, credentials);
+            const user: IUser = response.data;
+            localStorage.setItem("token", user.token || "");
+            dispatch(loginSuccess(user));
+        } catch {
+            dispatch(authError());
+        }
     };
 
     // Register a new user
     const register = async (details: any) => {
         dispatch(authPending());
-        const endpoint = "/auth/register";
-        await instance.post(endpoint, details)
-            .then((response) => {
-                const user: IUser = response.data;
-                localStorage.setItem("token", user.token || "");
-                dispatch(loginSuccess(user));
-            })
-            .catch(() => {
-                dispatch(authError());
-            });
+        const endpoint = "/api/auth/register"; // v2 path
+        try {
+            const response = await instance.post(endpoint, details);
+            const user: IUser = response.data;
+            localStorage.setItem("token", user.token || "");
+            dispatch(loginSuccess(user));
+        } catch {
+            dispatch(authError());
+        }
     };
 
     // Log out user
@@ -53,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!token) return;
 
         dispatch(authPending());
-        const endpoint = "/auth/me";
+        const endpoint = "/api/auth/me";
         // Header handled by axiosInstance or passed explicitly if required
         await instance.get(endpoint)
             .then((response) => {

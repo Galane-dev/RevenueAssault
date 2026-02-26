@@ -140,7 +140,7 @@ function ClientsContent() {
           value={filters.searchTerm}
           onChange={(e) => {
             // Update global filters via action
-            //actions?.updateFilters?.({ searchTerm: e.target.value, pageNumber: 1 });
+            actions?.updateFilters?.({ searchTerm: e.target.value, pageNumber: 1 });
           }}
         />
       </div>
@@ -155,7 +155,7 @@ function ClientsContent() {
           total: totalCount,
           current: filters.pageNumber,
           pageSize: filters.pageSize,
-          //onChange: (page) => actions?.updateFilters?.({ pageNumber: page }),
+          onChange: (page) => actions?.updateFilters?.({ pageNumber: page }),
           position: ['bottomRight'],
         }}
       />

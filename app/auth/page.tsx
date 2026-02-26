@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Input, Button, Form, message, Row, Col } from "antd";
+import { Input, Button, Form, message, Row, Col, Radio, Select, Divider } from "antd";
 import { useRouter } from "next/navigation";
 import { useStyles } from "./style";
 import { useAuthActions, useAuthState } from "../providers/authProvider";
@@ -13,6 +13,8 @@ export default function AuthPage() {
   const [form] = Form.useForm();
   
   const [view, setView] = useState<"login" | "register">("login");
+  // v2.0 Scenarios: new = Scenario A, join = Scenario B, default = Scenario C
+  const [regScenario, setRegScenario] = useState<"new" | "join" | "default">("new");
   
   const { login, register } = useAuthActions();
   const { isPending, isError, isAuthenticated } = useAuthState();
@@ -23,34 +25,43 @@ export default function AuthPage() {
       message.success(view === "login" ? "Welcome back!" : "Account created successfully!");
       router.push("/dashboard");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, view]);
 
   // 2. Failure Feedback
   useEffect(() => {
-  // We check isError, but we also ensure we aren't currently loading 
-  // and that the user has actually interacted with the form.
-  if (isError && !isPending) {
-    const errorMsg = view === "login" 
-      ? "Invalid email or password. Please try again." 
-      : "Registration failed. This email might already be in use.";
-    
-    message.error(errorMsg);
-  }
-}, [isError, isPending]);
+    if (isError && !isPending) {
+      const errorMsg = view === "login" 
+        ? "Invalid email or password. Please try again." 
+        : "Registration failed. Check your Tenant ID or organization details.";
+      
+      message.error(errorMsg);
+    }
+  }, [isError, isPending, view]);
 
   // 3. Handle Form Submission
   const onFinish = async (values: any) => {
     if (view === "login") {
       await login(values);
     } else {
-      await register(values);
+      // Clean up payload based on scenario to match v2.0 spec
+      const payload = { ...values };
+      if (regScenario === "new") {
+        delete payload.tenantId;
+        delete payload.role; // Admin is assigned by default for new orgs
+      } else if (regScenario === "join") {
+        delete payload.tenantName;
+      } else {
+        delete payload.tenantId;
+        delete payload.tenantName;
+      }
+      await register(payload);
     }
   };
 
   // 4. Handle View Toggle & Reset
   const toggleView = () => {
     setView(view === "login" ? "register" : "login");
-    form.resetFields(); // Clears inputs and validation messages
+    form.resetFields();
   };
 
   return (
@@ -69,24 +80,71 @@ export default function AuthPage() {
             requiredMark={false}
           >
             {view === "register" && (
-              <Row gutter={12}>
-                <Col span={12}>
-                  <Form.Item 
-                    name="firstName" 
-                    rules={[{ required: true, message: "Required" }]}
+              <>
+                <Row gutter={12}>
+                  <Col span={12}>
+                    <Form.Item 
+                      name="firstName" 
+                      rules={[{ required: true, message: "Required" }]}
+                    >
+                      <Input placeholder="First Name" disabled={isPending} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item 
+                      name="lastName" 
+                      rules={[{ required: true, message: "Required" }]}
+                    >
+                      <Input placeholder="Last Name" disabled={isPending} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ORGANIZATION SETUP</span>}>
+                  <Radio.Group 
+                    value={regScenario} 
+                    onChange={(e) => {
+                        setRegScenario(e.target.value);
+                        form.setFieldsValue({ tenantId: undefined, tenantName: undefined });
+                    }}
+                    style={{ marginBottom: 8 }}
+                    disabled={isPending}
                   >
-                    <Input placeholder="First Name" disabled={isPending} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
+                    <Radio value="new">New Org</Radio>
+                    <Radio value="join">Join Existing</Radio>
+                    <Radio value="default">Default</Radio>
+                  </Radio.Group>
+                </Form.Item>
+
+                {regScenario === "new" && (
                   <Form.Item 
-                    name="lastName" 
-                    rules={[{ required: true, message: "Required" }]}
+                    name="tenantName" 
+                    rules={[{ required: true, message: "Please enter your company name" }]}
                   >
-                    <Input placeholder="Last Name" disabled={isPending} />
+                    <Input placeholder="Organization / Company Name" disabled={isPending} />
                   </Form.Item>
-                </Col>
-              </Row>
+                )}
+
+                {regScenario === "join" && (
+                  <Form.Item 
+                    name="tenantId" 
+                    rules={[{ required: true, message: "Please enter the Tenant ID" }]}
+                  >
+                    <Input placeholder="Paste Tenant ID (GUID)" disabled={isPending} />
+                  </Form.Item>
+                )}
+
+                {regScenario !== "new" && (
+                  <Form.Item name="role" initialValue="SalesRep">
+                    <Select disabled={isPending}>
+                      <Select.Option value="SalesRep">Sales Rep</Select.Option>
+                      <Select.Option value="SalesManager">Sales Manager</Select.Option>
+                      <Select.Option value="BusinessDevelopmentManager">BDM</Select.Option>
+                    </Select>
+                  </Form.Item>
+                )}
+                <Divider style={{ margin: '12px 0', borderColor: '#303030' }} />
+              </>
             )}
 
             <Form.Item
