@@ -35,8 +35,13 @@ export default function CreateOpportunityModal({ open, onCancel }: Props) {
         try {
             const payload = {
                 ...values,
+                // Ensure these numbers are actually numbers
+                estimatedValue: Number(values.estimatedValue) || 0,
+                probability: Number(values.probability) || 0,
+                // v2.0 API uses currency
+                currency: values.currency || "ZAR", 
                 expectedCloseDate: values.expectedCloseDate.format("YYYY-MM-DD"),
-                stage: 1, // Default to Discovery
+                stage: 1, // Discovery
             };
             await oppActions?.createOpportunity(payload);
             message.success("Deal added to pipeline");
@@ -77,15 +82,18 @@ export default function CreateOpportunityModal({ open, onCancel }: Props) {
                 </Form.Item>
 
                 <div style={{ display: 'flex', gap: '16px' }}>
-                    <Form.Item name="estimatedValue" label={<Text color="#8c8c8c">EST. VALUE</Text>} style={{ flex: 1 }}>
-                        <InputNumber 
-                            className={styles.searchInput} 
-                            style={{ width: '100%' }} 
-                            formatter={value => `R ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        />
-                    </Form.Item>
-                    <Form.Item name="currency" label={<Text color="#8c8c8c">CURRENCY</Text>} initialValue="ZAR" style={{ width: 100 }}>
-                        <Input className={styles.searchInput} readOnly />
+                    <Form.Item name="estimatedValue" label={<Text color="#8c8c8c">EST. VALUE</Text>}>
+                    <InputNumber 
+                        className={styles.searchInput} 
+                        style={{ width: '100%' }} 
+                        // Remove formatter for the raw value sent to API
+                        placeholder="50000"
+                    />
+                        </Form.Item>
+
+                        {/* HIDDEN OR READONLY CURRENCY - MUST BE IN FORM TO BE IN ONFINISH */}
+                        <Form.Item name="currency" hidden initialValue="ZAR">
+                            <Input />
                     </Form.Item>
                 </div>
 

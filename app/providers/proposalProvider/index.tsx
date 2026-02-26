@@ -23,34 +23,56 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const actions = useMemo(() => ({
         getProposals,
-        createProposal: async (values: any) => {
-            dispatch(setPending());
-            try {
-                await getAxiosInstance().post("/api/proposals", values);
-                getProposals(state.filters);
-            } catch (e) {
-                dispatch(setError());
-                throw e;
-            }
-        },
+        
+       createProposal: async (values: any) => {
+    dispatch(setPending());
+    try {
+        const cleanedValues = {
+            ...values,
+            // Format to YYYY-MM-DD to match API docs example exactly
+            validUntil: values.validUntil 
+                ? new Date(values.validUntil).toISOString().split('T')[0] 
+                : null,
+            
+            lineItems: values.lineItems?.map((item: any) => ({
+                productServiceName: item.productServiceName || item.description,
+                description: item.description,
+                quantity: Number(item.quantity || 0),
+                unitPrice: Number(item.unitPrice || 0),
+                taxRate: Number(item.taxRate || 0),
+                discount: Number(item.discount || 0)
+            }))
+        };
+
+        await getAxiosInstance().post("/api/proposals", cleanedValues);
+        getProposals(state.filters);
+    } catch (e) {
+        dispatch(setError());
+        throw e;
+    }
+},
+
         submitProposal: async (id: string) => {
             try {
                 await getAxiosInstance().put(`/api/proposals/${id}/submit`);
                 getProposals(state.filters);
             } catch (e) { dispatch(setError()); }
         },
+
         approveProposal: async (id: string) => {
             try {
                 await getAxiosInstance().put(`/api/proposals/${id}/approve`);
                 getProposals(state.filters);
             } catch (e) { dispatch(setError()); }
         },
+
         rejectProposal: async (id: string) => {
             try {
                 await getAxiosInstance().put(`/api/proposals/${id}/reject`);
                 getProposals(state.filters);
             } catch (e) { dispatch(setError()); }
         },
+
         updateFilters: (newFilters: any) => {
             dispatch(setFilters({ filters: newFilters }));
         }
