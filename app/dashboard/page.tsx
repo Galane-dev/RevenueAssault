@@ -99,11 +99,10 @@ export default function DashboardOverview() {
         <Col xs={24} sm={12} lg={8}>
           <Card title="WIN RATE" className={styles.kpiCard}>
             <div className={styles.chartPlaceholder}>
-              <Statistic
-                value={overview?.opportunities?.winRate || 0}
-                suffix="%"
-                valueStyle={{ color: '#fff', fontSize: '28px', fontFamily: 'var(--font-monda)' }}
-                prefix={<TeamOutlined style={{ color: '#8c8c8c' }} />}
+              <Statistic 
+                title="Active Opportunities" 
+                value={12} 
+                styles={{ content: { color: '#3f8600' } }} 
               />
               <Text style={{ color: '#52c41a', fontSize: '12px' }}>
                 <ArrowUpOutlined /> {overview?.opportunities?.wonCount || 0} Deals Won
