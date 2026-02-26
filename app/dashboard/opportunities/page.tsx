@@ -15,11 +15,12 @@ import { IOpportunity } from "@/app/providers/opportunitiesProvider/context";
 const { Title, Text } = Typography;
 
 const STAGES: Record<number, { label: string, color: string }> = {
-    1: { label: "DISCOVERY", color: "default" },
-    2: { label: "PROPOSAL", color: "blue" },
-    3: { label: "NEGOTIATION", color: "orange" },
-    4: { label: "WON", color: "green" },
-    5: { label: "LOST", color: "red" },
+    1: { label: "LEAD / DISCOVERY", color: "default" },
+    2: { label: "QUALIFICATION", color: "cyan" },
+    3: { label: "PROPOSAL", color: "blue" },
+    4: { label: "NEGOTIATION", color: "orange" },
+    5: { label: "WON", color: "green" },
+    6: { label: "LOST", color: "red" },
 };
 
 function OpportunitiesContent() {
@@ -42,39 +43,46 @@ function OpportunitiesContent() {
     };
 
     const columns = [
-        {
-            title: "OPPORTUNITY",
-            dataIndex: "title",
-            key: "title",
-            render: (text: string) => <Text strong style={{ color: '#fff' }}>{text}</Text>
-        },
-        {
-            title: "EST. VALUE",
-            dataIndex: "estimatedValue",
-            key: "estimatedValue",
-            render: (val: number, record: any) => (
-                <Text style={{ color: '#52c41a' }}>{record.currency} {val?.toLocaleString()}</Text>
-            )
-        },
-        {
-            title: "STAGE",
-            dataIndex: "stage",
-            key: "stage",
-            render: (stage: number, record: IOpportunity) => (
+    {
+        title: "OPPORTUNITY",
+        dataIndex: "title",
+        key: "title",
+        render: (text: string) => <Text strong style={{ color: '#fff' }}>{text || "Untitled Deal"}</Text>
+    },
+    {
+        title: "EST. VALUE",
+        dataIndex: "estimatedValue",
+        key: "estimatedValue",
+        render: (val: number, record: any) => (
+            <Text style={{ color: '#52c41a' }}>
+                {/* Fallback to ZAR if currency is missing, and 0 if val is missing */}
+                {record.currency || "ZAR"} {(val || 0).toLocaleString()}
+            </Text>
+        )
+    },
+    {
+        title: "STAGE",
+        dataIndex: "stage",
+        key: "stage",
+        render: (stage: number, record: IOpportunity) => {
+            // If the API returns a string like "Won" instead of 4, we handle it
+            const stageKey = Number(stage);
+            const stageInfo = STAGES[stageKey] || { label: "UNKNOWN", color: "default" };
+            return (
                 <Space>
-                    <Tag color={STAGES[stage]?.color} style={{ borderRadius: 2 }}>
-                        {STAGES[stage]?.label}
+                    <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
+                        {stageInfo.label}
                     </Tag>
                     <Button 
                         type="text" 
-                        size="small" 
                         icon={<EditOutlined />} 
                         onClick={() => handleMoveClick(record)}
                         style={{ color: '#595959' }}
                     />
                 </Space>
-            )
-        },
+            );
+        }
+    },
         {
             title: "PROBABILITY",
             dataIndex: "probability",

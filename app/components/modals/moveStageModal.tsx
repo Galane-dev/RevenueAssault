@@ -18,11 +18,12 @@ interface Props {
 }
 
 const STAGES = [
-  { value: 1, label: "DISCOVERY" },
-  { value: 2, label: "PROPOSAL" },
-  { value: 3, label: "NEGOTIATION" },
-  { value: 4, label: "WON" },
-  { value: 5, label: "LOST" },
+  { value: 1, label: "LEAD / DISCOVERY" },
+  { value: 2, label: "QUALIFICATION" },
+  { value: 3, label: "PROPOSAL" },
+  { value: 4, label: "NEGOTIATION" },
+  { value: 5, label: "WON" },
+  { value: 6, label: "LOST" },
 ];
 
 export default function MoveStageModal({ opportunity, open, onCancel }: Props) {
@@ -46,9 +47,12 @@ export default function MoveStageModal({ opportunity, open, onCancel }: Props) {
     if (!opportunity) return;
 
     try {
+        // Force the stage to be a number just in case Ant Design Select returns a string
+        const numericStage = Number(values.stage);
+
       // API call: PUT /api/opportunities/{id}/stage
-      await actions?.updateStage(opportunity.id, values.stage, values.reason);
-      
+      await actions?.updateStage(opportunity.id, numericStage, values.reason);
+
       message.success({
         content: `Opportunity successfully moved to ${STAGES.find(s => s.value === values.stage)?.label}`,
         style: { marginTop: '10vh' }

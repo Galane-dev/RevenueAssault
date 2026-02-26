@@ -2,37 +2,28 @@
 
 import React, { useEffect, useContext, useState } from "react";
 import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip } from "antd";
-import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
-// Providers and Contexts
 import { ContactProvider, ContactStateContext, ContactActionContext } from "@/app/providers/contactProvider";
 import { ClientProvider, ClientStateContext, ClientActionContext } from "../../providers/clientProvider";
-
-// Components
 import AddContactModal from "../../components/modals/addContactModal";
 
 const { Title, Text } = Typography;
 
 function ContactsContent() {
     const { styles } = useStyles();
-    
-    // Consume Contact Machine State/Actions
     const { contacts, filters, totalCount, isPending } = useContext(ContactStateContext);
     const contactActions = useContext(ContactActionContext);
-
-    // Consume Client Machine State/Actions for the filter dropdown
     const { clients } = useContext(ClientStateContext);
     const clientActions = useContext(ClientActionContext);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Initial load and filter synchronization
     useEffect(() => {
         contactActions?.getContacts(filters);
     }, [filters, contactActions]);
 
-    // Fetch clients once for the filter dropdown if they aren't loaded
     useEffect(() => {
         if (!clients || clients.length === 0) {
             clientActions?.getClients({ pageNumber: 1, pageSize: 100 });
@@ -47,14 +38,14 @@ function ContactsContent() {
                 <Space size="middle">
                     <Avatar 
                         icon={<UserOutlined />} 
-                        style={{ backgroundColor: record.isPrimary ? '#1677ff' : '#1a1a1a', border: '1px solid #303030' }} 
+                        style={{ backgroundColor: record.isPrimaryContact ? '#050505' : '#1a1a1a', border: '1px solid #303030' }} 
                     />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <Space size={4}>
                             <Text strong style={{ color: '#fff' }}>{`${record.firstName} ${record.lastName}`}</Text>
-                            {record.isPrimary && (
+                            {record.isPrimaryContact && (
                                 <Tooltip title="Primary Contact">
-                                    <StarFilled style={{ color: '#faad14', fontSize: '12px' }} />
+                                    <StarOutlined style={{ color: '#9a9a9a', fontSize: '12px' }} />
                                 </Tooltip>
                             )}
                         </Space>
@@ -77,8 +68,8 @@ function ContactsContent() {
         },
         {
             title: "PHONE",
-            dataIndex: "phone",
-            key: "phone",
+            dataIndex: "phoneNumber", // Updated
+            key: "phoneNumber",
             render: (text: string) => (
                 <Text style={{ color: '#8c8c8c' }}>
                     <PhoneOutlined style={{ marginRight: 8, fontSize: '11px' }} />
@@ -87,10 +78,14 @@ function ContactsContent() {
             )
         },
         {
-            title: "ROLE",
-            key: "role",
-            render: (record: any) => (
-                record.isPrimary ? <Tag color="blue">Primary Decision Maker</Tag> : <Text style={{ color: '#434343' }}>Stakeholder</Text>
+            title: "POSITION", // Updated from Role
+            dataIndex: "position",
+            key: "position",
+            render: (text: string, record: any) => (
+                <Space direction="vertical" size={0}>
+                    <Text style={{ color: '#d9d9d9' }}>{text || "Stakeholder"}</Text>
+                    {record.isPrimaryContact && <Tag color="blue" style={{ fontSize: '10px', marginTop: 4 }}>PRIMARY</Tag>}
+                </Space>
             )
         },
         {
@@ -100,11 +95,11 @@ function ContactsContent() {
             render: (record: any) => (
                 <Button 
                     type="text" 
-                    disabled={record.isPrimary}
+                    disabled={record.isPrimaryContact}
                     onClick={() => contactActions?.setPrimary(record.id)}
-                    style={{ color: record.isPrimary ? '#262626' : '#1677ff', fontSize: '12px' }}
+                    style={{ color: record.isPrimaryContact ? '#262626' : '#1677ff', fontSize: '12px' }}
                 >
-                    {record.isPrimary ? "PRIMARY" : "SET AS PRIMARY"}
+                    {record.isPrimaryContact ? "PRIMARY" : "SET AS PRIMARY"}
                 </Button>
             )
         }
@@ -178,7 +173,6 @@ function ContactsContent() {
     );
 }
 
-// Nested Providers to satisfy machine structure evaluation
 export default function ContactsPage() {
     return (
         <ClientProvider>

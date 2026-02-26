@@ -7,8 +7,9 @@ export interface IContact {
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
-    isPrimary: boolean;
+    phoneNumber: string;    // Updated
+    position: string;       // Added
+    isPrimaryContact: boolean; // Updated
 }
 
 export interface IContactStateContext {

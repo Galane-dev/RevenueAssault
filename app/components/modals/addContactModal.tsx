@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useContext } from "react";
-import { Modal, Form, Input, Select, Button, message, Typography } from "antd";
+import { Modal, Form, Input, Select, Button, message, Typography, Checkbox } from "antd";
 import { ContactActionContext, ContactStateContext } from "@/app/providers/contactProvider";
 import { ClientStateContext } from "@/app/providers/clientProvider";
 import { useStyles } from "../../dashboard/style";
@@ -16,17 +16,13 @@ interface Props {
 export default function AddContactModal({ open, onCancel }: Props) {
     const { styles } = useStyles();
     const [form] = Form.useForm();
-    
-    // Contact Machine
     const { isPending } = useContext(ContactStateContext);
     const contactActions = useContext(ContactActionContext);
-    
-    // Client Machine (for the dropdown)
     const { clients } = useContext(ClientStateContext);
 
     const onFinish = async (values: any) => {
         try {
-            // API: POST /api/contacts
+            // Values now contain phoneNumber, position, and isPrimaryContact
             await contactActions?.createContact(values);
             message.success("Contact added successfully");
             form.resetFields();
@@ -47,7 +43,7 @@ export default function AddContactModal({ open, onCancel }: Props) {
                 body: { background: '#0a0a0a', paddingTop: '24px' }
             }}
         >
-            <Form form={form} layout="vertical" onFinish={onFinish}>
+            <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ isPrimaryContact: false }}>
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <Form.Item 
                         name="firstName" 
@@ -93,11 +89,25 @@ export default function AddContactModal({ open, onCancel }: Props) {
                     <Input className={styles.searchInput} placeholder="john.doe@company.com" />
                 </Form.Item>
 
-                <Form.Item 
-                    name="phone" 
-                    label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>PHONE NUMBER</Text>}
-                >
-                    <Input className={styles.searchInput} placeholder="+27..." />
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <Form.Item 
+                        name="phoneNumber" // Updated
+                        label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>PHONE NUMBER</Text>}
+                        style={{ flex: 1 }}
+                    >
+                        <Input className={styles.searchInput} placeholder="+27..." />
+                    </Form.Item>
+                    <Form.Item 
+                        name="position" // Added
+                        label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>POSITION</Text>}
+                        style={{ flex: 1 }}
+                    >
+                        <Input className={styles.searchInput} placeholder="Manager" />
+                    </Form.Item>
+                </div>
+
+                <Form.Item name="isPrimaryContact" valuePropName="checked">
+                    <Checkbox><Text style={{ color: '#8c8c8c', fontSize: '12px' }}>SET AS PRIMARY CONTACT</Text></Checkbox>
                 </Form.Item>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>

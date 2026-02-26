@@ -38,16 +38,32 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
         },
 
         updateStage: async (id: string, stage: number, reason?: string) => {
-            dispatch(setPending()); // Set loading while updating
+            dispatch(setPending()); 
             try {
-                await getAxiosInstance().put(`/api/opportunities/${id}/stage`, { stage, reason });
-                getOpportunities(state.filters);
-            } catch (e) {
+                // The API expects: { newStage: int, notes: string, lossReason: string }
+                const payload = { 
+                    newStage: Number(stage), 
+                    notes: reason || "Stage updated via pipeline",
+                    // If stage is 6 (LOST), we send the reason as lossReason, otherwise null
+                    lossReason: stage === 6 ? reason : "" 
+                };
+
+                console.log("Sending Updated Payload:", payload);
+
+                const response = await getAxiosInstance().put(`/api/opportunities/${id}/stage`, payload);
+                
+                console.log("Success Status:", response.status);
+
+                // Refresh the list to show the new stage
+                await getOpportunities(state.filters);
+            } catch (e: any) {
                 dispatch(setError());
+                if (e.response) {
+                    console.error("API Rejected Request:", e.response.data);
+                }
                 throw e;
             }
         },
-
         updateFilters: (newFilters: any) => {
             dispatch(setFilters({ filters: newFilters }));
         }
