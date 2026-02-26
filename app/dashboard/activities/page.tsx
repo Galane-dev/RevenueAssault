@@ -11,6 +11,7 @@ import {
     MoreOutlined,
     ClockCircleOutlined,
     CheckCircleOutlined,
+    DeleteOutlined,
 } from "@ant-design/icons";
 import { useStyles } from "../style";
 import dayjs from "dayjs";
@@ -26,6 +27,7 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 
 // Components
 import LogActivityModal from "../../components/modals/logActivityModal";
+import { Can } from "../../components/auth/can";
 
 dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
@@ -79,6 +81,17 @@ function ActivityFeedContent() {
             message.success("Activity completed");
         } catch (error) {
             message.error("Failed to update activity");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (window.confirm("Are you sure you want to delete this activity?")) {
+            try {
+                await activityActions?.deleteActivity?.(id);
+                message.success("Activity deleted");
+            } catch (error) {
+                message.error("Failed to delete activity");
+            }
         }
     };
 
@@ -173,6 +186,15 @@ function ActivityFeedContent() {
                             COMPLETE
                         </Button>
                     )}
+                    <Can perform="DELETE_ACTIVITY">
+                        <Button 
+                            type="text" 
+                            danger
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleDelete(record.id)}
+                        />
+                    </Can>
                     <Button type="text" icon={<MoreOutlined />} style={{ color: '#595959' }} />
                 </Space>
             )
@@ -191,15 +213,17 @@ function ActivityFeedContent() {
                         ACTIVITY FEED
                     </Title>
                 </header>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    className={styles.primaryButton}
-                    size="large"
-                    onClick={() => setIsModalOpen(true)}
-                >
-                    LOG ACTIVITY
-                </Button>
+                <Can perform="CREATE_ACTIVITY">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        className={styles.primaryButton}
+                        size="large"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        LOG ACTIVITY
+                    </Button>
+                </Can>
             </div>
 
             {/* View Tabs */}
@@ -258,10 +282,12 @@ function ActivityFeedContent() {
             />
 
             {/* Modal Integration */}
-            <LogActivityModal 
-                open={isModalOpen} 
-                onCancel={() => setIsModalOpen(false)} 
-            />
+            <Can perform="CREATE_ACTIVITY">
+                <LogActivityModal 
+                    open={isModalOpen} 
+                    onCancel={() => setIsModalOpen(false)} 
+                />
+            </Can>
         </div>
     );
 }

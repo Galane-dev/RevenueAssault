@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
-import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip } from "antd";
-import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined } from "@ant-design/icons";
+import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip, message } from "antd";
+import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
 import { ContactProvider, ContactStateContext, ContactActionContext } from "@/app/providers/contactProvider";
 import { ClientProvider, ClientStateContext, ClientActionContext } from "../../providers/clientProvider";
 import AddContactModal from "../../components/modals/addContactModal";
+import { Can } from "../../components/auth/can";
 
 const { Title, Text } = Typography;
 
@@ -29,6 +30,17 @@ function ContactsContent() {
             clientActions?.getClients({ pageNumber: 1, pageSize: 100 });
         }
     }, [clients, clientActions]);
+
+    const handleDeleteContact = (id: string, name: string) => {
+        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+            try {
+                contactActions?.deleteContact?.(id);
+                message.success("Contact deleted successfully");
+            } catch (error) {
+                message.error("Failed to delete contact");
+            }
+        }
+    };
 
     const columns = [
         {
@@ -93,14 +105,25 @@ function ContactsContent() {
             key: "actions",
             align: 'right' as const,
             render: (record: any) => (
-                <Button 
-                    type="text" 
-                    disabled={record.isPrimaryContact}
-                    onClick={() => contactActions?.setPrimary(record.id)}
-                    style={{ color: record.isPrimaryContact ? '#262626' : '#1677ff', fontSize: '12px' }}
-                >
-                    {record.isPrimaryContact ? "PRIMARY" : "SET AS PRIMARY"}
-                </Button>
+                <Space>
+                    <Button 
+                        type="text" 
+                        disabled={record.isPrimaryContact}
+                        onClick={() => contactActions?.setPrimary(record.id)}
+                        style={{ color: record.isPrimaryContact ? '#262626' : '#1677ff', fontSize: '12px' }}
+                    >
+                        {record.isPrimaryContact ? "PRIMARY" : "SET AS PRIMARY"}
+                    </Button>
+                    <Can perform="DELETE_CONTACT">
+                        <Button 
+                            type="text" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            onClick={() => handleDeleteContact(record.id, `${record.firstName} ${record.lastName}`)}
+                            style={{ fontSize: '12px' }}
+                        />
+                    </Can>
+                </Space>
             )
         }
     ];
@@ -116,15 +139,17 @@ function ContactsContent() {
                         CONTACT DIRECTORY
                     </Title>
                 </header>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    className={styles.primaryButton} 
-                    size="large"
-                    onClick={() => setIsModalOpen(true)}
-                >
-                    ADD NEW CONTACT
-                </Button>
+                <Can perform="CREATE_CONTACT">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        className={styles.primaryButton} 
+                        size="large"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        ADD NEW CONTACT
+                    </Button>
+                </Can>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, gap: 16 }}>
@@ -165,10 +190,12 @@ function ContactsContent() {
                 }}
             />
 
-            <AddContactModal 
-                open={isModalOpen} 
-                onCancel={() => setIsModalOpen(false)} 
-            />
+            <Can perform="CREATE_CONTACT">
+                <AddContactModal 
+                    open={isModalOpen} 
+                    onCancel={() => setIsModalOpen(false)} 
+                />
+            </Can>
         </div>
     );
 }

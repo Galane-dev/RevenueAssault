@@ -22,6 +22,9 @@ import dayjs from "dayjs";
 import { DocumentProvider, DocumentStateContext, DocumentActionContext } from "@/app/providers/documentProvider";
 import { DocumentCategory } from "@/app/providers/documentProvider/context";
 
+// Components
+import { Can } from "../../components/auth/can";
+
 import relativeTime from "dayjs/plugin/relativeTime"; // 1. Import the plugin
 
 dayjs.extend(relativeTime);
@@ -146,18 +149,20 @@ function DocumentManagerContent() {
                             onClick={() => documentActions?.downloadDocument(record.id, record.fileName)}
                         />
                     </Tooltip>
-                    <Tooltip title="Delete">
-                        <Button 
-                            type="text" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            onClick={() => {
-                                if (confirm("Are you sure you want to delete this document?")) {
-                                    documentActions?.deleteDocument(record.id);
-                                }
-                            }}
-                        />
-                    </Tooltip>
+                    <Can perform="DELETE_DOCUMENT">
+                        <Tooltip title="Delete">
+                            <Button 
+                                type="text" 
+                                danger 
+                                icon={<DeleteOutlined />} 
+                                onClick={() => {
+                                    if (confirm("Are you sure you want to delete this document?")) {
+                                        documentActions?.deleteDocument(record.id);
+                                    }
+                                }}
+                            />
+                        </Tooltip>
+                    </Can>
                 </Space>
             )
         }
@@ -176,62 +181,64 @@ function DocumentManagerContent() {
 
             <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                 {/* Fixed Upload Card */}
-                <Card style={{ width: 350, background: '#141414', border: '1px solid #303030', borderRadius: '8px' }}>
-                    <Title level={5} style={{ color: '#d9d9d9', marginBottom: 20 }}>Upload Center</Title>
-                    
-                    {/* Native Hidden Input */}
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        style={{ display: 'none' }} 
-                        onChange={handleNativeUpload} 
-                    />
+                <Can perform="UPLOAD_DOCUMENT">
+                    <Card style={{ width: 350, background: '#141414', border: '1px solid #303030', borderRadius: '8px' }}>
+                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 20 }}>Upload Center</Title>
+                        
+                        {/* Native Hidden Input */}
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            style={{ display: 'none' }} 
+                            onChange={handleNativeUpload} 
+                        />
 
-                    <div style={{ marginBottom: 20 }}>
-                        <Text style={{ color: '#8c8c8c', fontSize: '11px', display: 'block', marginBottom: 8 }}>
-                            ASSIGN CATEGORY
-                        </Text>
-                        <Select 
-                            style={{ width: '100%' }} 
-                            value={selectedCategory}
-                            onChange={setSelectedCategory}
+                        <div style={{ marginBottom: 20 }}>
+                            <Text style={{ color: '#8c8c8c', fontSize: '11px', display: 'block', marginBottom: 8 }}>
+                                ASSIGN CATEGORY
+                            </Text>
+                            <Select 
+                                style={{ width: '100%' }} 
+                                value={selectedCategory}
+                                onChange={setSelectedCategory}
+                            >
+                                <Select.Option value={DocumentCategory.Contract}>Contract</Select.Option>
+                                <Select.Option value={DocumentCategory.Proposal}>Proposal</Select.Option>
+                                <Select.Option value={DocumentCategory.Presentation}>Presentation</Select.Option>
+                                <Select.Option value={DocumentCategory.Quote}>Quote</Select.Option>
+                                <Select.Option value={DocumentCategory.Report}>Report</Select.Option>
+                                <Select.Option value={DocumentCategory.Other}>Other</Select.Option>
+                            </Select>
+                        </div>
+
+                        <div 
+                            style={{ 
+                                border: '1px dashed #434343', 
+                                padding: '32px 16px', 
+                                textAlign: 'center', 
+                                borderRadius: '4px',
+                                background: '#0a0a0a',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => fileInputRef.current?.click()}
                         >
-                            <Select.Option value={DocumentCategory.Contract}>Contract</Select.Option>
-                            <Select.Option value={DocumentCategory.Proposal}>Proposal</Select.Option>
-                            <Select.Option value={DocumentCategory.Presentation}>Presentation</Select.Option>
-                            <Select.Option value={DocumentCategory.Quote}>Quote</Select.Option>
-                            <Select.Option value={DocumentCategory.Report}>Report</Select.Option>
-                            <Select.Option value={DocumentCategory.Other}>Other</Select.Option>
-                        </Select>
-                    </div>
+                            <CloudUploadOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: 12 }} />
+                            <p style={{ color: '#d9d9d9', margin: 0 }}>Select File to Upload</p>
+                            <p style={{ color: '#595959', fontSize: '12px', marginTop: 4 }}>PDF, DOCX, XLSX up to 50MB</p>
+                        </div>
 
-                    <div 
-                        style={{ 
-                            border: '1px dashed #434343', 
-                            padding: '32px 16px', 
-                            textAlign: 'center', 
-                            borderRadius: '4px',
-                            background: '#0a0a0a',
-                            cursor: 'pointer'
-                        }}
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <CloudUploadOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: 12 }} />
-                        <p style={{ color: '#d9d9d9', margin: 0 }}>Select File to Upload</p>
-                        <p style={{ color: '#595959', fontSize: '12px', marginTop: 4 }}>PDF, DOCX, XLSX up to 50MB</p>
-                    </div>
-
-                    <Button 
-                        type="primary" 
-                        block 
-                        style={{ marginTop: 16 }}
-                        onClick={() => fileInputRef.current?.click()}
-                        loading={isPending}
-                        className={styles.primaryButton}
-                    >
-                        BROWSE FILES
-                    </Button>
-                </Card>
+                        <Button 
+                            type="primary" 
+                            block 
+                            style={{ marginTop: 16 }}
+                            onClick={() => fileInputRef.current?.click()}
+                            loading={isPending}
+                            className={styles.primaryButton}
+                        >
+                            BROWSE FILES
+                        </Button>
+                    </Card>
+                </Can>
 
                 {/* Main Table */}
                 <div style={{ flex: 1 }}>

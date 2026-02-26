@@ -11,6 +11,7 @@ import {
 } from "@ant-design/icons";
 import { useStyles } from "./style";
 import { useDashboardActions, useDashboardState } from "../providers/dashboardProvider";
+import { Can } from "../components/auth/can";
 
 const { Title, Text } = Typography;
 
@@ -149,6 +150,20 @@ export default function DashboardOverview() {
           locale={{ emptyText: <Empty description="No recent opportunities" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
         />
       </div>
+
+      <Can perform="VIEW_SALES_PERFORMANCE">
+        <Row gutter={[24, 24]} style={{ marginTop: 32 }}>
+          <Col span={24}>
+            <Card title="SALES TEAM PERFORMANCE" className={styles.kpiCard} style={{ marginBottom: 0 }}>
+              <div className={styles.chartPlaceholder}>
+                <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                  Top performing sales representatives this quarter
+                </Text>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      </Can>
     </>
   );
 }

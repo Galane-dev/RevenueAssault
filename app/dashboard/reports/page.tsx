@@ -3,13 +3,14 @@
 import React, { useEffect, useContext } from "react";
 import { 
     Tag,Card, Row, Col, Statistic, Table, 
-    DatePicker, Select, Space, Typography, Skeleton 
+    DatePicker, Select, Space, Typography, Skeleton, Empty, Result
 } from "antd";
 import { 
     ArrowUpOutlined, 
     DollarOutlined, 
     BarChartOutlined, 
-    RiseOutlined 
+    RiseOutlined,
+    LockOutlined
 } from "@ant-design/icons";
 import { Column } from "@ant-design/plots";
 import { useStyles } from "../style";
@@ -18,6 +19,9 @@ import dayjs from "dayjs";
 // Providers
 import { ReportProvider, ReportStateContext, ReportActionContext } from "../../providers/reportsProvider";
 import { IReportStateContext, IReportActionContext } from "@/app/providers/reportsProvider/context";
+
+// Components
+import { Can } from "../../components/auth/can";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -237,8 +241,22 @@ function SalesDashboardContent() {
 // Ensure proper wrapping with Provider
 export default function SalesDashboardPage() {
     return (
-        <ReportProvider>
-            <SalesDashboardContent />
-        </ReportProvider>
+        <Can 
+            perform="VIEW_REPORTS"
+            fallback={
+                <div style={{ padding: '0 24px', minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Result
+                        status="403"
+                        icon={<LockOutlined style={{ fontSize: '48px', color: '#ff4d4f' }} />}
+                        title="Access Restricted"
+                        subTitle="This feature is only available to Admins and Sales Managers"
+                    />
+                </div>
+            }
+        >
+            <ReportProvider>
+                <SalesDashboardContent />
+            </ReportProvider>
+        </Can>
     );
 }

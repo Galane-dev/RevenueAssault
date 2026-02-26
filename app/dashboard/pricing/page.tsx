@@ -20,6 +20,7 @@ import { OpportunityProvider } from "../../providers/opportunitiesProvider";
 
 // Components
 import AddPricingRequestModal from "../../components/modals/addPricingRequestModal";
+import { Can } from "../../components/auth/can";
 
 const { Title, Text } = Typography;
 
@@ -99,15 +100,17 @@ function PricingContent() {
             render: (record: any) => (
                 <Space>
                     {record.status === PricingRequestStatus.Pending && (
-                        <Button 
-                            size="small"
-                            type="primary" 
-                            ghost
-                            icon={<UserAddOutlined />}
-                            onClick={() => pricingActions?.assignRequest(record.id, "current-user-id")} // You'll need real user ID here
-                        >
-                            ASSIGN TO ME
-                        </Button>
+                        <Can perform="ASSIGN_PRICING_REQUEST">
+                            <Button 
+                                size="small"
+                                type="primary" 
+                                ghost
+                                icon={<UserAddOutlined />}
+                                onClick={() => pricingActions?.assignRequest(record.id, "current-user-id")} // You'll need real user ID here
+                            >
+                                ASSIGN TO ME
+                            </Button>
+                        </Can>
                     )}
                     {record.status === PricingRequestStatus.InProgress && (
                         <Button 
@@ -135,15 +138,17 @@ function PricingContent() {
                         PRICING REQUESTS
                     </Title>
                 </header>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    className={styles.primaryButton} 
-                    size="large"
-                    onClick={() => setIsModalOpen(true)}
-                >
-                    NEW REQUEST
-                </Button>
+                <Can perform="CREATE_PRICING_REQUEST">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        className={styles.primaryButton} 
+                        size="large"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        NEW REQUEST
+                    </Button>
+                </Can>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, gap: 16 }}>
@@ -187,10 +192,12 @@ function PricingContent() {
                 }}
             />
 
-            <AddPricingRequestModal 
-                open={isModalOpen} 
-                onCancel={() => setIsModalOpen(false)} 
-            />
+            <Can perform="CREATE_PRICING_REQUEST">
+                <AddPricingRequestModal 
+                    open={isModalOpen} 
+                    onCancel={() => setIsModalOpen(false)} 
+                />
+            </Can>
         </div>
     );
 }

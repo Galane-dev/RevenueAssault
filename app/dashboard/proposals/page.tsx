@@ -7,7 +7,8 @@ import {
     CheckCircleOutlined, 
     CloseCircleOutlined, 
     PlusOutlined,
-    EyeOutlined
+    EyeOutlined,
+    DeleteOutlined
 } from "@ant-design/icons";
 import { useStyles } from "../style";
 
@@ -17,6 +18,7 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 
 // Components
 import CreateProposalModal from "../../components/modals/createProposal";
+import { Can } from "../../components/auth/can";
 
 const { Title, Text } = Typography;
 
@@ -101,23 +103,45 @@ function ProposalsContent() {
 
                     {record.status === 2 && (
                         <>
-                            <Tooltip title="Approve">
+                            <Can perform="APPROVE_PROPOSAL">
+                                <Tooltip title="Approve">
+                                    <Button 
+                                        type="text" 
+                                        icon={<CheckCircleOutlined />} 
+                                        onClick={() => handleAction(record.id, actions!.approveProposal, "approved")}
+                                        style={{ color: '#52c41a' }} 
+                                    />
+                                </Tooltip>
+                            </Can>
+                            <Can perform="REJECT_PROPOSAL">
+                                <Tooltip title="Reject">
+                                    <Button 
+                                        type="text" 
+                                        icon={<CloseCircleOutlined />} 
+                                        onClick={() => handleAction(record.id, actions!.rejectProposal, "rejected")}
+                                        style={{ color: '#ff4d4f' }} 
+                                    />
+                                </Tooltip>
+                            </Can>
+                        </>
+                    )}
+
+                    {record.status === 1 && (
+                        <Can perform="DELETE_PROPOSAL">
+                            <Tooltip title="Delete">
                                 <Button 
                                     type="text" 
-                                    icon={<CheckCircleOutlined />} 
-                                    onClick={() => handleAction(record.id, actions!.approveProposal, "approved")}
-                                    style={{ color: '#52c41a' }} 
-                                />
-                            </Tooltip>
-                            <Tooltip title="Reject">
-                                <Button 
-                                    type="text" 
-                                    icon={<CloseCircleOutlined />} 
-                                    onClick={() => handleAction(record.id, actions!.rejectProposal, "rejected")}
+                                    danger
+                                    icon={<DeleteOutlined />} 
+                                    onClick={() => {
+                                        if (window.confirm("Are you sure you want to delete this proposal?")) {
+                                            //handleAction(record.id, actions!.deleteProposal, "deleted");
+                                        }
+                                    }}
                                     style={{ color: '#ff4d4f' }} 
                                 />
                             </Tooltip>
-                        </>
+                        </Can>
                     )}
                 </Space>
             )
@@ -135,15 +159,17 @@ function ProposalsContent() {
                         PROPOSALS & QUOTES
                     </Title>
                 </header>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    className={styles.primaryButton} 
-                    size="large"
-                    onClick={() => setIsCreateModalOpen(true)} // Hooked up the click
-                >
-                    CREATE PROPOSAL
-                </Button>
+                <Can perform="CREATE_PROPOSAL">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        className={styles.primaryButton} 
+                        size="large"
+                        onClick={() => setIsCreateModalOpen(true)} // Hooked up the click
+                    >
+                        CREATE PROPOSAL
+                    </Button>
+                </Can>
             </div>
 
             <Table 
@@ -161,10 +187,12 @@ function ProposalsContent() {
             />
 
             {/* Modal Component */}
-            <CreateProposalModal 
-                open={isCreateModalOpen} 
-                onCancel={() => setIsCreateModalOpen(false)} 
-            />
+            <Can perform="CREATE_PROPOSAL">
+                <CreateProposalModal 
+                    open={isCreateModalOpen} 
+                    onCancel={() => setIsCreateModalOpen(false)} 
+                />
+            </Can>
         </div>
     );
 }
