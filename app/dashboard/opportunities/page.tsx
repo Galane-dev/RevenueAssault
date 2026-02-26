@@ -50,6 +50,16 @@ function OpportunitiesContent() {
         setIsMoveModalOpen(true);
     };
 
+    const handleDeleteOpportunity = (id: string) => {
+        if (window.confirm("Are you sure you want to delete this opportunity?")) {
+            try {
+                actions?.deleteOpportunity(id);
+            } catch (error) {
+                console.error("Failed to delete opportunity", error);
+            }
+        }
+    };
+
  
     const handleRowClick = (record: IOpportunity) => {
         setSelectedOpp(record);
@@ -117,7 +127,7 @@ function OpportunitiesContent() {
                         <Popconfirm
                             title="Delete Opportunity"
                             description="Are you sure you want to delete this deal?"
-                            //onConfirm={() => handleDelete(record.id)}
+                            onConfirm={() => handleDeleteOpportunity(record.id)}
                             okText="Yes"
                             cancelText="No"
                         >
@@ -220,7 +230,19 @@ function OpportunitiesContent() {
                                 
                                 {/* Assign Action: Admin/SalesManager only */}
                                 <Can perform="ASSIGN_OPPORTUNITY">
-                                    <Button size="small" ghost>Assign Rep</Button>
+                                    <Button 
+                                        size="small" 
+                                        ghost
+                                        onClick={() => {
+                                            // Show a simple prompt for user ID or integrate with modal
+                                            const assignedToId = prompt("Enter user ID to assign:");
+                                            if (assignedToId) {
+                                                actions?.assignOpportunity(selectedOpp.id, assignedToId);
+                                            }
+                                        }}
+                                    >
+                                        Assign Rep
+                                    </Button>
                                 </Can>
                             </div>
                             <Divider style={{ borderColor: '#303030' }} />

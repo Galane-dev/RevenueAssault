@@ -88,7 +88,7 @@ function ActivityFeedContent() {
     const handleDelete = async (id: string) => {
         if (window.confirm("Are you sure you want to delete this activity?")) {
             try {
-                //await activityActions?.deleteActivity?.(id);
+                await activityActions?.deleteActivity(id);
                 message.success("Activity deleted");
             } catch (error) {
                 message.error("Failed to delete activity");

@@ -30,6 +30,13 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 dispatch(setActivities({ items: response.data, totalCount: response.data.length }));
             } catch (e) { dispatch(setError()); }
         },
+        getMyActivities: async () => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get("/api/activities/my-activities");
+                dispatch(setActivities(response.data));
+            } catch (e) { dispatch(setError()); }
+        },
         getOverdue: async () => {
             dispatch(setPending());
             try {
@@ -56,6 +63,12 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         cancelActivity: async (id: string) => {
             try {
                 await getAxiosInstance().put(`/api/activities/${id}/cancel`);
+                getActivities(state.filters);
+            } catch (e) { dispatch(setError()); }
+        },
+        deleteActivity: async (id: string) => {
+            try {
+                await getAxiosInstance().delete(`/api/activities/${id}`);
                 getActivities(state.filters);
             } catch (e) { dispatch(setError()); }
         },

@@ -36,6 +36,17 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
         },
 
+        // Fetches client statistics
+        getClientStats: async (id: string) => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get(`/api/clients/${id}/stats`);
+                return response.data;
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
+
         // Updates an existing client
         updateClient: async (client: any) => {
             dispatch(setPending());

@@ -24,6 +24,36 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         dispatch(setError());
       }
     },
+    getPipelineMetrics: async () => {
+      try {
+        const response = await getAxiosInstance().get("/api/dashboard/pipeline-metrics");
+        if (state.overview) {
+          dispatch(setOverview({ ...state.overview, pipelineMetrics: response.data }));
+        }
+      } catch (e) {
+        dispatch(setError());
+      }
+    },
+    getSalesPerformance: async () => {
+      try {
+        const response = await getAxiosInstance().get("/api/dashboard/sales-performance");
+        if (state.overview) {
+          dispatch(setOverview({ ...state.overview, salesPerformance: response.data }));
+        }
+      } catch (e) {
+        dispatch(setError());
+      }
+    },
+    getActivitiesSummary: async () => {
+      try {
+        const response = await getAxiosInstance().get("/api/dashboard/activities-summary");
+        if (state.overview) {
+          dispatch(setOverview({ ...state.overview, activitiesSummary: response.data }));
+        }
+      } catch (e) {
+        dispatch(setError());
+      }
+    },
     getRecentOpportunities: async () => {
       try {
         const response = await getAxiosInstance().get("/api/opportunities?pageSize=5");
@@ -32,7 +62,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.error("Failed to fetch opportunities", e);
       }
     }
-  }), [dispatch]);
+  }), [dispatch, state.overview]);
 
   return (
     <DashboardStateContext.Provider value={state}>

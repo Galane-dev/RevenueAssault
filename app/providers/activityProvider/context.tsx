@@ -55,10 +55,12 @@ export interface IActivityStateContext {
 export interface IActivityActionContext {
     getActivities: (filters: any) => Promise<void>;
     getUpcoming: (daysAhead?: number) => Promise<void>;
+    getMyActivities: () => Promise<void>;
     getOverdue: () => Promise<void>;
     createActivity: (activity: Partial<IActivity>) => Promise<void>;
     completeActivity: (id: string, outcome: string) => Promise<void>;
     cancelActivity: (id: string) => Promise<void>;
+    deleteActivity: (id: string) => Promise<void>;
     updateFilters: (filters: Partial<IActivityStateContext['filters']>) => void;
 }
 

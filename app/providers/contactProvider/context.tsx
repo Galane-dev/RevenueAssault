@@ -28,6 +28,8 @@ export interface IContactStateContext {
 export interface IContactActionContext {
     getContacts: (filters: any) => void;
     createContact: (contact: Partial<IContact>) => Promise<void>;
+    updateContact: (contact: IContact) => Promise<void>;
+    deleteContact: (id: string) => Promise<void>;
     setPrimary: (id: string) => Promise<void>;
     updateFilters: (filters: Partial<IContactStateContext['filters']>) => void;
 }

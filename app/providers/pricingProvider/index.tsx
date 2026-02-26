@@ -24,6 +24,24 @@ export const PricingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const actions = useMemo(() => ({
         getRequests,
+        getPending: async () => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get("/api/pricingrequests/pending");
+                dispatch(setRequests(response.data));
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
+        getMyRequests: async () => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get("/api/pricingrequests/my-requests");
+                dispatch(setRequests(response.data));
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
         createRequest: async (values: any) => {
             dispatch(setPending());
             try {
@@ -32,6 +50,24 @@ export const PricingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             } catch (e) {
                 dispatch(setError());
                 throw e;
+            }
+        },
+        updateRequest: async (request: any) => {
+            dispatch(setPending());
+            try {
+                await getAxiosInstance().put(`/api/pricingrequests/${request.id}`, request);
+                getRequests(state.filters);
+            } catch (e) {
+                dispatch(setError());
+                throw e;
+            }
+        },
+        deleteRequest: async (id: string) => {
+            try {
+                await getAxiosInstance().delete(`/api/pricingrequests/${id}`);
+                getRequests(state.filters);
+            } catch (e) {
+                dispatch(setError());
             }
         },
         assignRequest: async (id: string, userId: string) => {

@@ -42,6 +42,24 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 dispatch(setError());
             }
         },
+        updateContact: async (contact: any) => {
+            dispatch(setPending());
+            try {
+                await getAxiosInstance().put(`/api/contacts/${contact.id}`, contact);
+                getContacts(state.filters);
+            } catch (e) {
+                dispatch(setError());
+                throw e;
+            }
+        },
+        deleteContact: async (id: string) => {
+            try {
+                await getAxiosInstance().delete(`/api/contacts/${id}`);
+                getContacts(state.filters);
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
         updateFilters: (newFilters: any) => {
             dispatch(setFilters({ filters: newFilters }));
         }

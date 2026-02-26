@@ -13,6 +13,7 @@ export const PERMISSIONS = {
     ASSIGN_OPPORTUNITY: ['Admin', 'SalesManager'],
     ASSIGN_PRICING_REQUEST: ['Admin', 'SalesManager'],
     ACTIVATE_CONTRACT: ['Admin', 'SalesManager'],
+    RENEW_CONTRACT: ['Admin', 'SalesManager'],
     CANCEL_CONTRACT: ['Admin', 'SalesManager'],
     DELETE_CLIENT: ['Admin', 'SalesManager'],
     DELETE_OPPORTUNITY: ['Admin', 'SalesManager'],

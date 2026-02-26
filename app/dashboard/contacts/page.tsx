@@ -35,7 +35,7 @@ function ContactsContent() {
     const handleDeleteContact = (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete ${name}?`)) {
             try {
-                //contactActions?.deleteContact?.(id);
+                contactActions?.deleteContact(id);
                 message.success("Contact deleted successfully");
             } catch (error) {
                 message.error("Failed to delete contact");

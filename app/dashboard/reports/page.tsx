@@ -41,9 +41,11 @@ function SalesDashboardContent() {
     const reportActions = useContext(ReportActionContext) as IReportActionContext;
 
     useEffect(() => {
-        // Fetch data whenever filters change
-        reportActions?.getOpportunityReport(filters);
-        reportActions?.getSalesPeriodReport(filters);
+        // Fetch data with current filters on mount and when filters change
+        if (reportActions && filters) {
+            reportActions.getOpportunityReport(filters);
+            reportActions.getSalesPeriodReport(filters);
+        }
     }, [filters, reportActions]);
 
     // Derived Statistics
@@ -133,11 +135,18 @@ function SalesDashboardContent() {
                 
                 <Space size="middle">
                     <RangePicker 
+                        value={
+                            filters.startDate && filters.endDate 
+                                ? [dayjs(filters.startDate), dayjs(filters.endDate)]
+                                : undefined
+                        }
                         onChange={(dates) => {
-                            reportActions?.updateFilters({ 
-                                startDate: dates ? dates[0]?.toISOString() : undefined, 
-                                endDate: dates ? dates[1]?.toISOString() : undefined 
-                            });
+                            if (dates && dates[0] && dates[1]) {
+                                reportActions?.updateFilters({ 
+                                    startDate: dates[0].toISOString(), 
+                                    endDate: dates[1].toISOString()
+                                });
+                            }
                         }}
                         style={{ background: '#141414', borderColor: '#303030' }}
                     />

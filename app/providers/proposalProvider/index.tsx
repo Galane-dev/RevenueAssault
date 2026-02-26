@@ -73,6 +73,13 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             } catch (e) { dispatch(setError()); }
         },
 
+        deleteProposal: async (id: string) => {
+            try {
+                await getAxiosInstance().delete(`/api/proposals/${id}`);
+                getProposals(state.filters);
+            } catch (e) { dispatch(setError()); }
+        },
+
         updateFilters: (newFilters: any) => {
             dispatch(setFilters({ filters: newFilters }));
         }

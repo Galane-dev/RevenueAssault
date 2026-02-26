@@ -47,8 +47,9 @@ export const INITIAL_STATE: IReportStateContext = {
     salesPeriodReport: [],
     filters: {
         groupBy: 'month',
-        startDate: undefined,
-        endDate: undefined,
+        // Default to last 90 days
+        startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date().toISOString(),
     }
 };
 

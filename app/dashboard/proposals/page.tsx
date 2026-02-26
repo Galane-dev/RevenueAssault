@@ -136,7 +136,7 @@ function ProposalsContent() {
                                     icon={<DeleteOutlined />} 
                                     onClick={() => {
                                         if (window.confirm("Are you sure you want to delete this proposal?")) {
-                                            //handleAction(record.id, actions!.deleteProposal, "deleted");
+                                            actions!.deleteProposal(record.id);
                                         }
                                     }}
                                     style={{ color: '#ff4d4f' }} 
