@@ -6,7 +6,9 @@ export interface IUser {
     firstName: string;
     lastName: string;
     roles: string[];
+    tenantId: string; // Added for v2.0
     token?: string;
+    expiresAt?: string; // Useful for session management
 }
 
 export interface IAuthStateContext {

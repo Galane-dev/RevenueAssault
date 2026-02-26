@@ -1,0 +1,130 @@
+"use client";
+
+import React, { useContext, useEffect } from "react";
+import { Modal, Form, Input, InputNumber, Button, DatePicker, Select, Space, Divider, message } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ProposalActionContext, ProposalStateContext } from "@/app/providers/proposalProvider";
+import { OpportunityStateContext, OpportunityActionContext } from "@/app/providers/opportunitiesProvider";
+import { useStyles } from '../../dashboard/style';
+
+interface Props {
+    open: boolean;
+    onCancel: () => void;
+}
+
+export default function CreateProposalModal({ open, onCancel }: Props) {
+    const { styles } = useStyles();
+    const [form] = Form.useForm();
+
+    // Consume Machines
+    const { isPending } = useContext(ProposalStateContext);
+    const proposalActions = useContext(ProposalActionContext);
+    const { opportunities } = useContext(OpportunityStateContext);
+    const oppActions = useContext(OpportunityActionContext);
+
+    // Fetch opportunities for the dropdown
+    useEffect(() => {
+        if (open && (!opportunities || opportunities.length === 0)) {
+            oppActions?.getOpportunities({ pageNumber: 1, pageSize: 50 });
+        }
+    }, [open, opportunities, oppActions]);
+
+    const onFinish = async (values: any) => {
+        try {
+            const payload = {
+                ...values,
+                validUntil: values.validUntil.format("YYYY-MM-DD"),
+                // Ensure numbers are sent correctly
+                lineItems: values.lineItems.map((item: any) => ({
+                    ...item,
+                    quantity: Number(item.quantity),
+                    unitPrice: Number(item.unitPrice),
+                    discount: Number(item.discount || 0),
+                    taxRate: Number(item.taxRate || 15)
+                }))
+            };
+
+            await proposalActions?.createProposal(payload);
+            message.success("Proposal created as Draft");
+            form.resetFields();
+            onCancel();
+        } catch (error) {
+            message.error("Failed to create proposal");
+        }
+    };
+
+    return (
+        <Modal
+            title={<span style={{ color: '#fff', letterSpacing: '1px' }}>CREATE FORMAL PROPOSAL</span>}
+            open={open}
+            onCancel={onCancel}
+            width={800}
+            footer={null}
+            styles={{ 
+                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
+                body: { background: '#0a0a0a', paddingTop: '24px' }
+            }}
+        >
+            <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ currency: 'ZAR', lineItems: [{}] }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <Form.Item name="opportunityId" label="LINK TO OPPORTUNITY" rules={[{ required: true }]} style={{ flex: 2 }}>
+                        <Select className={styles.searchInput} placeholder="Select a deal" popupClassName={styles.drawerSelectPopup}>
+                            {opportunities?.map(opp => (
+                                <Select.Option key={opp.id} value={opp.id}>{opp.title}</Select.Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="currency" label="CURRENCY" style={{ flex: 1 }}>
+                        <Input className={styles.searchInput} readOnly />
+                    </Form.Item>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <Form.Item name="title" label="PROPOSAL TITLE" rules={[{ required: true }]} style={{ flex: 2 }}>
+                        <Input className={styles.searchInput} placeholder="e.g. Software License Implementation" />
+                    </Form.Item>
+                    <Form.Item name="validUntil" label="VALID UNTIL" rules={[{ required: true }]} style={{ flex: 1 }}>
+                        <DatePicker className={styles.searchInput} style={{ width: '100%' }} />
+                    </Form.Item>
+                </div>
+
+                <Divider style={{ borderColor: '#1a1a1a', margin: '24px 0' }} />
+                <span style={{ color: '#8c8c8c', fontSize: '12px', fontWeight: 600 }}>LINE ITEMS</span>
+
+                <Form.List name="lineItems">
+                    {(fields, { add, remove }) => (
+                        <div style={{ marginTop: 16 }}>
+                            {fields.map(({ key, name, ...restField }) => (
+                                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                                    <Form.Item {...restField} name={[name, 'description']} rules={[{ required: true, message: 'Missing description' }]}>
+                                        <Input className={styles.searchInput} placeholder="Description" style={{ width: 250 }} />
+                                    </Form.Item>
+                                    <Form.Item {...restField} name={[name, 'quantity']} rules={[{ required: true }]}>
+                                        <InputNumber className={styles.searchInput} placeholder="Qty" min={1} />
+                                    </Form.Item>
+                                    <Form.Item {...restField} name={[name, 'unitPrice']} rules={[{ required: true }]}>
+                                        <InputNumber className={styles.searchInput} placeholder="Price" min={0} />
+                                    </Form.Item>
+                                    <Form.Item {...restField} name={[name, 'taxRate']} initialValue={15}>
+                                        <InputNumber className={styles.searchInput} placeholder="Tax %" min={0} />
+                                    </Form.Item>
+                                    <DeleteOutlined style={{ color: '#ff4d4f' }} onClick={() => remove(name)} />
+                                </Space>
+                            ))}
+                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} style={{ color: '#8c8c8c', borderColor: '#303030' }}>
+                                Add Item
+                            </Button>
+                        </div>
+                    )}
+                </Form.List>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '40px' }}>
+                    <Button onClick={onCancel} ghost>Cancel</Button>
+                    <Button type="primary" htmlType="submit" loading={isPending} className={styles.primaryButton}>
+                        Save Proposal
+                    </Button>
+                </div>
+            </Form>
+        </Modal>
+    );
+}
