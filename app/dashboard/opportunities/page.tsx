@@ -1,15 +1,20 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
-import { Table, Typography, Tag, Button, Input, Select, Space } from "antd";
-import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
+import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider } from "antd";
+import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
+
+// Providers
 import { OpportunityProvider, OpportunityStateContext, OpportunityActionContext } from "../../providers/opportunitiesProvider";
 import { ClientProvider } from "@/app/providers/clientProvider";
+import { NoteProvider } from "@/app/providers/noteProvider";
+import { EntityType } from "@/app/providers/noteProvider/context";
 
-// Import your new modals
+// Components
 import CreateOpportunityModal from "../../components/modals/addOpportunityModal";
 import MoveStageModal from "../../components/modals/moveStageModal";
+import { NoteSection } from "../../components/notes/notes"; // Adjust path as needed
 import { IOpportunity } from "@/app/providers/opportunitiesProvider/context";
 
 const { Title, Text } = Typography;
@@ -28,66 +33,81 @@ function OpportunitiesContent() {
     const { opportunities, filters, totalCount, isPending } = useContext(OpportunityStateContext);
     const actions = useContext(OpportunityActionContext);
 
-    // --- MODAL STATES ---
+    // --- STATES ---
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedOpp, setSelectedOpp] = useState<IOpportunity | null>(null);
 
     useEffect(() => {
         actions?.getOpportunities(filters);
     }, [filters, actions]);
 
-    const handleMoveClick = (record: IOpportunity) => {
+    const handleMoveClick = (e: React.MouseEvent, record: IOpportunity) => {
+        e.stopPropagation(); // Prevent opening the drawer when clicking the edit button
         setSelectedOpp(record);
         setIsMoveModalOpen(true);
     };
 
+    const handleRowClick = (record: IOpportunity) => {
+        setSelectedOpp(record);
+        setIsDrawerOpen(true);
+    };
+
     const columns = [
-    {
-        title: "OPPORTUNITY",
-        dataIndex: "title",
-        key: "title",
-        render: (text: string) => <Text strong style={{ color: '#fff' }}>{text || "Untitled Deal"}</Text>
-    },
-    {
-        title: "EST. VALUE",
-        dataIndex: "estimatedValue",
-        key: "estimatedValue",
-        render: (val: number, record: any) => (
-            <Text style={{ color: '#52c41a' }}>
-                {/* Fallback to ZAR if currency is missing, and 0 if val is missing */}
-                {record.currency || "ZAR"} {(val || 0).toLocaleString()}
-            </Text>
-        )
-    },
-    {
-        title: "STAGE",
-        dataIndex: "stage",
-        key: "stage",
-        render: (stage: number, record: IOpportunity) => {
-            // If the API returns a string like "Won" instead of 4, we handle it
-            const stageKey = Number(stage);
-            const stageInfo = STAGES[stageKey] || { label: "UNKNOWN", color: "default" };
-            return (
-                <Space>
-                    <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
-                        {stageInfo.label}
-                    </Tag>
-                    <Button 
-                        type="text" 
-                        icon={<EditOutlined />} 
-                        onClick={() => handleMoveClick(record)}
-                        style={{ color: '#595959' }}
-                    />
-                </Space>
-            );
-        }
-    },
+        {
+            title: "OPPORTUNITY",
+            dataIndex: "title",
+            key: "title",
+            render: (text: string) => (
+                <Text strong style={{ color: '#1890ff', cursor: 'pointer' }}>
+                    {text || "Untitled Deal"}
+                </Text>
+            )
+        },
+        {
+            title: "EST. VALUE",
+            dataIndex: "estimatedValue",
+            key: "estimatedValue",
+            render: (val: number, record: any) => (
+                <Text style={{ color: '#52c41a' }}>
+                    {record.currency || "ZAR"} {(val || 0).toLocaleString()}
+                </Text>
+            )
+        },
+        {
+            title: "STAGE",
+            dataIndex: "stage",
+            key: "stage",
+            render: (stage: number, record: IOpportunity) => {
+                const stageKey = Number(stage);
+                const stageInfo = STAGES[stageKey] || { label: "UNKNOWN", color: "default" };
+                return (
+                    <Space>
+                        <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
+                            {stageInfo.label}
+                        </Tag>
+                        <Button 
+                            type="text" 
+                            icon={<EditOutlined />} 
+                            onClick={(e) => handleMoveClick(e, record)}
+                            style={{ color: '#595959' }}
+                        />
+                    </Space>
+                );
+            }
+        },
         {
             title: "PROBABILITY",
             dataIndex: "probability",
             key: "probability",
             render: (prob: number) => <Text style={{ color: '#8c8c8c' }}>{prob}%</Text>
+        },
+        {
+            title: "NOTES",
+            key: "notes",
+            align: 'center' as const,
+            render: () => <MessageOutlined style={{ color: '#595959' }} />
         }
     ];
 
@@ -95,7 +115,7 @@ function OpportunitiesContent() {
         <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 40 }}>
                 <header>
-                    <Text style={{ color: '#595959', letterSpacing: '2px', fontSize: '12px' }}>SALES PIPELINE</Text>
+                    <Text style={{ color: '#595959', letterSpacing: '2px', fontSize: '12px', fontWeight: 700 }}>SALES PIPELINE</Text>
                     <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>OPPORTUNITIES</Title>
                 </header>
                 <Button 
@@ -103,27 +123,25 @@ function OpportunitiesContent() {
                     icon={<PlusOutlined />} 
                     className={styles.primaryButton} 
                     size="large"
-                    onClick={() => setIsCreateModalOpen(true)} // 1. Added Trigger
+                    onClick={() => setIsCreateModalOpen(true)}
                 >
                     NEW OPPORTUNITY
                 </Button>
             </div>
 
-            <div className={styles.filterSection}>
+            <div className={styles.filterSection} style={{ marginBottom: 20, display: 'flex', gap: 12 }}>
                 <Input 
                     placeholder="Search deals..." 
-                    className={styles.searchInput}
+                    style={{ width: 300 }}
                     prefix={<SearchOutlined style={{ color: '#595959' }} />}
                     value={filters.searchTerm}
                     onChange={(e) => actions?.updateFilters({ searchTerm: e.target.value, pageNumber: 1 })}
                 />
                 <Select 
                     placeholder="Filter by Stage" 
-                    className={styles.searchInput}
                     style={{ width: 200 }}
                     allowClear
                     onChange={(val) => actions?.updateFilters({ stage: val, pageNumber: 1 })}
-                    popupClassName={styles.drawerSelectPopup}
                 >
                     {Object.entries(STAGES).map(([key, value]) => (
                         <Select.Option key={key} value={Number(key)}>{value.label}</Select.Option>
@@ -137,6 +155,9 @@ function OpportunitiesContent() {
                 loading={isPending}
                 rowKey="id"
                 className={styles.customTable}
+                onRow={(record) => ({
+                    onClick: () => handleRowClick(record),
+                })}
                 pagination={{
                     total: totalCount,
                     current: filters.pageNumber,
@@ -145,7 +166,43 @@ function OpportunitiesContent() {
                 }}
             />
 
-            {/* 2. ADD THE MODALS HERE */}
+            {/* SIDE DRAWER FOR NOTES */}
+            <Drawer
+                title={
+                    <div>
+                        <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>OPPORTUNITY DETAILS</Text>
+                        <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedOpp?.title}</Title>
+                    </div>
+                }
+                placement="right"
+                width={500}
+                onClose={() => {
+                    setIsDrawerOpen(false);
+                    setSelectedOpp(null);
+                }}
+                open={isDrawerOpen}
+                styles={{ body: { background: '#141414', padding: '24px' }, header: { background: '#141414', borderBottom: '1px solid #303030' } }}
+            >
+                {selectedOpp && (
+                    <>
+                        <div style={{ marginBottom: 24 }}>
+                            <Text type="secondary">Status: </Text>
+                            <Tag color={STAGES[Number(selectedOpp.stage)]?.color}>
+                                {STAGES[Number(selectedOpp.stage)]?.label}
+                            </Tag>
+                            <Divider style={{ borderColor: '#303030' }} />
+                        </div>
+                        
+                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
+                        {/* NoteSection Integrated Here */}
+                        <NoteSection 
+                            type={EntityType.Opportunity} 
+                            id={selectedOpp.id} 
+                        />
+                    </>
+                )}
+            </Drawer>
+
             <CreateOpportunityModal 
                 open={isCreateModalOpen} 
                 onCancel={() => setIsCreateModalOpen(false)} 
@@ -166,9 +223,11 @@ function OpportunitiesContent() {
 export default function OpportunitiesPage() {
     return (
        <ClientProvider>
-        <OpportunityProvider>
-            <OpportunitiesContent />
-        </OpportunityProvider>
+            <OpportunityProvider>
+                <NoteProvider>
+                    <OpportunitiesContent />
+                </NoteProvider>
+            </OpportunityProvider>
        </ClientProvider> 
     );
 }
