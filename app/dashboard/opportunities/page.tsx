@@ -2,7 +2,7 @@
 
 import React, { useEffect, useContext, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid, message } from "antd";
+import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid, message, Modal, Form } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined, AppstoreOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
@@ -44,6 +44,10 @@ function OpportunitiesContent() {
     const [searchInput, setSearchInput] = useState("");
     const [viewType, setViewType] = useState<"list" | "kanban">("list");
     const [draggedOpp, setDraggedOpp] = useState<IOpportunity | null>(null);
+    const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
+    const [pendingMove, setPendingMove] = useState<{ oppId: string; stageNum: number; stageName: string } | null>(null);
+    const [moveReason, setMoveReason] = useState("");
+    const [form] = Form.useForm();
 
     useEffect(() => {
         actions?.getOpportunities(filters);
@@ -73,6 +77,38 @@ function OpportunitiesContent() {
     const handleRowClick = (record: IOpportunity) => {
         setSelectedOpp(record);
         setIsDrawerOpen(true);
+    };
+
+    const handleDragDrop = (oppId: string, stageNum: number, stageName: string) => {
+        setPendingMove({ oppId, stageNum, stageName });
+        setMoveReason("");
+        setIsReasonModalOpen(true);
+    };
+
+    const handleConfirmMove = async () => {
+        if (!pendingMove) return;
+        
+        if (!moveReason.trim()) {
+            message.warning("Please provide a reason for moving this opportunity");
+            return;
+        }
+
+        try {
+            await actions?.updateStage(pendingMove.oppId, pendingMove.stageNum, moveReason);
+            message.success(`Moved to ${pendingMove.stageName}`);
+            setIsReasonModalOpen(false);
+            setPendingMove(null);
+            setMoveReason("");
+        } catch (error) {
+            message.error("Failed to move opportunity");
+        }
+    };
+
+    const handleCancelMove = () => {
+        setIsReasonModalOpen(false);
+        setPendingMove(null);
+        setMoveReason("");
+        setDraggedOpp(null);
     };
 
     const columns = [
@@ -270,8 +306,7 @@ function OpportunitiesContent() {
                                     onDrop={(e) => {
                                         e.preventDefault();
                                         if (draggedOpp) {
-                                            actions?.updateStage(draggedOpp.id, stageNum);
-                                            message.success(`Moved to ${stageInfo.label}`);
+                                            handleDragDrop(draggedOpp.id, stageNum, stageInfo.label);
                                             setDraggedOpp(null);
                                         }
                                     }}
@@ -341,6 +376,17 @@ function OpportunitiesContent() {
                                                 display: 'flex', 
                                                 alignItems: 'center', 
                                                 justifyContent: 'center'
+                                            }}
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                e.dataTransfer.dropEffect = 'move';
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                if (draggedOpp) {
+                                                    handleDragDrop(draggedOpp.id, stageNum, stageInfo.label);
+                                                    setDraggedOpp(null);
+                                                }
                                             }}
                                         >
                                             No deals
@@ -425,6 +471,36 @@ function OpportunitiesContent() {
                     setSelectedOpp(null);
                 }}
             />
+
+            {/* Move Reason Modal */}
+            <Modal
+                title="Move Opportunity"
+                open={isReasonModalOpen}
+                onOk={handleConfirmMove}
+                onCancel={handleCancelMove}
+                okText="Confirm Move"
+                cancelText="Cancel"
+            >
+                <div style={{ marginBottom: 16 }}>
+                    <Typography.Text style={{ color: '#8c8c8c', display: 'block', marginBottom: 8 }}>
+                        Moving <Typography.Text strong style={{ color: '#fff' }}>{draggedOpp?.title}</Typography.Text> to <Typography.Text strong style={{ color: '#52c41a' }}>{pendingMove?.stageName}</Typography.Text>
+                    </Typography.Text>
+                </div>
+                <Form layout="vertical">
+                    <Form.Item label="Reason for Move" required>
+                        <Input.TextArea 
+                            rows={4}
+                            placeholder="Enter reason for moving this opportunity (e.g., 'Customer approved proposal', 'Needs more information', etc.)"
+                            value={moveReason}
+                            onChange={(e) => setMoveReason(e.target.value)}
+                            maxLength={500}
+                        />
+                    </Form.Item>
+                    <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+                        {moveReason.length}/500
+                    </Typography.Text>
+                </Form>
+            </Modal>
         </>
     );
 }
