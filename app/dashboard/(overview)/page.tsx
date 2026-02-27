@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Typography, Row, Col, Card, Table, Statistic, Empty, Spin, Progress, Space } from "antd";
+import React, { useState, useEffect } from "react";
+import { Typography, Row, Col, Card, Table, Statistic, Empty, Spin, Progress, Space, Button, Modal, Form, Input, Select, message } from "antd";
 import { 
   LineChartOutlined, 
-  TeamOutlined, 
   FileDoneOutlined,
   ArrowUpOutlined,
   LoadingOutlined,
@@ -20,11 +19,16 @@ import { AIChatComponent, ChatButton } from "../../components/ai";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIDashboardContext } from "@/app/providers/dashboardProvider/useAIContext";
 import { withAuth } from "../../hoc/withAuth";
+import { useAuthState } from "@/app/providers/authProvider";
 
 const { Title, Text } = Typography;
+type InviteRole = "SalesRep" | "SalesManager" | "BusinessDevelopmentManager";
 
 function DashboardOverview() {
   const { styles } = useStyles();
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inviteForm] = Form.useForm();
   
   // AI Chat
   const { isChatOpen, openChat, closeChat } = useAIChat({ 
@@ -35,6 +39,44 @@ function DashboardOverview() {
   // Subscribe to Global Dashboard State
   const { overview, recentOpportunities, isPending } = useDashboardState();
   const { getDashboardOverview, getRecentOpportunities } = useDashboardActions();
+  const { user } = useAuthState();
+
+  const currentTenantId = user?.tenantId;
+
+  const onInviteSubmit = async (values: { email: string; role: InviteRole }) => {
+    if (!currentTenantId) {
+      message.error("Your tenant information is missing. Please login again.");
+      return;
+    }
+
+    try {
+      setIsSendingInvite(true);
+      const response = await fetch("/api/invitations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          role: values.role,
+          tenantId: currentTenantId,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to send invite");
+      }
+
+      message.success("Invitation sent successfully.");
+      inviteForm.resetFields();
+      setInviteOpen(false);
+    } catch (error: any) {
+      message.error(error?.message || "Could not send invitation.");
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
 
   useEffect(() => {
     // Fetch live data on mount only
@@ -102,10 +144,19 @@ function DashboardOverview() {
     <>
       <header className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={2} className={styles.pageTitle}>DASHBOARD OVERVIEW</Title>
-        <ChatButton
-          onClick={() => openChat(aiContext)}
-          title="Ask AI about dashboard"
-        />
+        <Space>
+          <Button
+            type="primary"
+            className={styles.primaryButton}
+            onClick={() => setInviteOpen(true)}
+          >
+            Invite User
+          </Button>
+          <ChatButton
+            onClick={() => openChat(aiContext)}
+            title="Ask AI about dashboard"
+          />
+        </Space>
       </header>
 
       <Row gutter={[24, 24]}>
@@ -324,6 +375,50 @@ function DashboardOverview() {
         title="Dashboard AI Assistant"
         pageTitle="Dashboard Overview"
       />
+
+      <Modal
+        title="Invite user to organisation"
+        open={inviteOpen}
+        onCancel={() => {
+          setInviteOpen(false);
+          inviteForm.resetFields();
+        }}
+        okText="Send Invite"
+        onOk={() => inviteForm.submit()}
+        okButtonProps={{ loading: isSendingInvite }}
+      >
+        <Form
+          form={inviteForm}
+          layout="vertical"
+          onFinish={onInviteSubmit}
+          initialValues={{ role: "SalesRep" }}
+        >
+          <Form.Item label="Tenant ID">
+            <Input value={currentTenantId} disabled />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Invitee Email"
+            rules={[
+              { required: true, message: "Email is required" },
+              { type: "email", message: "Enter a valid email" },
+            ]}
+          >
+            <Input placeholder="name@company.com" />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: "Role is required" }]}
+          >
+            <Select>
+              <Select.Option value="SalesRep">Sales Rep</Select.Option>
+              <Select.Option value="SalesManager">Sales Manager</Select.Option>
+              <Select.Option value="BusinessDevelopmentManager">Business Development Manager</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 }
