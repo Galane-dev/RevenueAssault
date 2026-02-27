@@ -116,7 +116,6 @@ function ClientsContent() {
       align: 'right' as const,
       render: (_: any, record: any) => (
         <Space size="middle">
-          <Button type="text" icon={<EditOutlined />} style={{ color: "#8c8c8c" }} />
           <Can perform="DELETE_CLIENT">
             <Button 
               type="text" 
