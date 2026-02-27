@@ -2,7 +2,7 @@
 
 import React, { useEffect, useContext, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid } from "antd";
+import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid, message } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined, AppstoreOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
@@ -43,6 +43,7 @@ function OpportunitiesContent() {
     const [selectedOpp, setSelectedOpp] = useState<IOpportunity | null>(null);
     const [searchInput, setSearchInput] = useState("");
     const [viewType, setViewType] = useState<"list" | "kanban">("list");
+    const [draggedOpp, setDraggedOpp] = useState<IOpportunity | null>(null);
 
     useEffect(() => {
         actions?.getOpportunities(filters);
@@ -239,7 +240,18 @@ function OpportunitiesContent() {
                         const oppsByStage = (opportunities || []).filter(opp => opp.stage === stageNum);
                         
                         return (
-                            <div key={stagKey} style={{ background: '#1f1f1f', border: '1px solid #303030', borderRadius: 8, padding: 16 }}>
+                            <div 
+                                key={stagKey}
+                                style={{ 
+                                    background: '#1f1f1f', 
+                                    border: '1px solid #303030', 
+                                    borderRadius: 8, 
+                                    padding: 16,
+                                    minHeight: 400,
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}
+                            >
                                 <div style={{ marginBottom: 16 }}>
                                     <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
                                         {stageInfo.label}
@@ -249,50 +261,88 @@ function OpportunitiesContent() {
                                     </Text>
                                 </div>
 
-                                <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 200 }}>
+                                <div 
+                                    style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        if (draggedOpp) {
+                                            actions?.updateStage(draggedOpp.id, stageNum);
+                                            message.success(`Moved to ${stageInfo.label}`);
+                                            setDraggedOpp(null);
+                                        }
+                                    }}
+                                >
                                     {oppsByStage.length > 0 ? (
-                                        oppsByStage.map(opp => (
-                                            <Card
+                                        oppsByStage.map((opp) => (
+                                            <div
                                                 key={opp.id}
-                                                size="small"
-                                                style={{ 
-                                                    background: '#141414', 
-                                                    border: '1px solid #303030',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.3s ease'
+                                                draggable
+                                                onDragStart={(e) => {
+                                                    setDraggedOpp(opp);
+                                                    e.dataTransfer.effectAllowed = 'move';
+                                                    e.dataTransfer.setData('text/plain', opp.id);
                                                 }}
-                                                hoverable
-                                                onClick={() => handleRowClick(opp)}
+                                                onDragEnd={() => setDraggedOpp(null)}
+                                                style={{
+                                                    opacity: draggedOpp?.id === opp.id ? 0.5 : 1,
+                                                    cursor: 'grab',
+                                                }}
                                             >
-                                                <div style={{ marginBottom: 8 }}>
-                                                    <Text strong style={{ color: '#fff', display: 'block', marginBottom: 4 }}>
-                                                        {opp.title || "Untitled Deal"}
-                                                    </Text>
-                                                    <Text style={{ color: '#52c41a', fontSize: '12px' }}>
-                                                        {opp.currency || "ZAR"} {(opp.estimatedValue || 0).toLocaleString()}
-                                                    </Text>
-                                                </div>
+                                                <Card
+                                                    size="small"
+                                                    style={{ 
+                                                        background: '#141414', 
+                                                        border: draggedOpp?.id === opp.id ? '2px solid #52c41a' : '1px solid #303030',
+                                                        cursor: 'grab',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                    hoverable
+                                                    onClick={() => handleRowClick(opp)}
+                                                >
+                                                    <div style={{ marginBottom: 8 }}>
+                                                        <Text strong style={{ color: '#fff', display: 'block', marginBottom: 4 }}>
+                                                            {opp.title || "Untitled Deal"}
+                                                        </Text>
+                                                        <Text style={{ color: '#52c41a', fontSize: '12px' }}>
+                                                            {opp.currency || "ZAR"} {(opp.estimatedValue || 0).toLocaleString()}
+                                                        </Text>
+                                                    </div>
 
-                                                <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
+                                                    <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
 
-                                                <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
-                                                    <Button 
-                                                        type="text" 
-                                                        size="small"
-                                                        icon={<EditOutlined />} 
-                                                        onClick={(e) => handleMoveClick(e, opp)}
-                                                        style={{ color: '#595959' }}
-                                                    >
-                                                        Move
-                                                    </Button>
-                                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                                                        {opp.probability || 0}% prob
-                                                    </Text>
-                                                </div>
-                                            </Card>
+                                                    <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+                                                        <Button 
+                                                            type="text" 
+                                                            size="small"
+                                                            icon={<EditOutlined />} 
+                                                            onClick={(e) => handleMoveClick(e, opp)}
+                                                            style={{ color: '#595959' }}
+                                                        >
+                                                            Move
+                                                        </Button>
+                                                        <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                                            {opp.probability || 0}% prob
+                                                        </Text>
+                                                    </div>
+                                                </Card>
+                                            </div>
                                         ))
                                     ) : (
-                                        <div style={{ color: '#595959', textAlign: 'center', padding: '16px 0', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div 
+                                            style={{ 
+                                                color: '#595959', 
+                                                textAlign: 'center', 
+                                                padding: '16px 0', 
+                                                flex: 1,
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center'
+                                            }}
+                                        >
                                             No deals
                                         </div>
                                     )}
