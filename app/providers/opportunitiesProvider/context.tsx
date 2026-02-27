@@ -30,8 +30,13 @@ export interface IOpportunityStateContext {
 
 export interface IOpportunityActionContext {
     getOpportunities: (filters: any) => void;
+    getMyOpportunities: () => Promise<void>;
+    getPipeline: (filters: any) => Promise<void>;
+    getStageHistory: (id: string) => Promise<any>;
     createOpportunity: (values: Partial<IOpportunity>) => Promise<void>;
     updateStage: (id: string, stage: number, reason?: string) => Promise<void>;
+    deleteOpportunity: (id: string) => Promise<void>;
+    assignOpportunity: (id: string, assignedToId: string) => Promise<void>;
     updateFilters: (filters: Partial<IOpportunityStateContext['filters']>) => void;
 }
 

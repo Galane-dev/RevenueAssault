@@ -38,10 +38,7 @@ export default function AddContactModal({ open, onCancel }: Props) {
             open={open}
             onCancel={onCancel}
             footer={null}
-            styles={{ 
-                header: { background: '#0a0a0a', borderBottom: '1px solid #1a1a1a', paddingBottom: '16px' },
-                body: { background: '#0a0a0a', paddingTop: '24px' }
-            }}
+            
         >
             <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ isPrimaryContact: false }}>
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -51,7 +48,7 @@ export default function AddContactModal({ open, onCancel }: Props) {
                         rules={[{ required: true }]}
                         style={{ flex: 1 }}
                     >
-                        <Input className={styles.searchInput} placeholder="John" />
+                        <Input  placeholder="John" />
                     </Form.Item>
                     <Form.Item 
                         name="lastName" 
@@ -59,7 +56,7 @@ export default function AddContactModal({ open, onCancel }: Props) {
                         rules={[{ required: true }]}
                         style={{ flex: 1 }}
                     >
-                        <Input className={styles.searchInput} placeholder="Doe" />
+                        <Input  placeholder="Doe" />
                     </Form.Item>
                 </div>
 
@@ -69,7 +66,7 @@ export default function AddContactModal({ open, onCancel }: Props) {
                     rules={[{ required: true, message: 'Please select a client' }]}
                 >
                     <Select 
-                        className={styles.searchInput} 
+                         
                         placeholder="Select a company"
                         showSearch
                         optionFilterProp="children"
@@ -86,7 +83,7 @@ export default function AddContactModal({ open, onCancel }: Props) {
                     label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>EMAIL ADDRESS</Text>}
                     rules={[{ required: true, type: 'email' }]}
                 >
-                    <Input className={styles.searchInput} placeholder="john.doe@company.com" />
+                    <Input  placeholder="john.doe@company.com" />
                 </Form.Item>
 
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -95,14 +92,14 @@ export default function AddContactModal({ open, onCancel }: Props) {
                         label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>PHONE NUMBER</Text>}
                         style={{ flex: 1 }}
                     >
-                        <Input className={styles.searchInput} placeholder="+27..." />
+                        <Input  placeholder="+27..." />
                     </Form.Item>
                     <Form.Item 
                         name="position" // Added
                         label={<Text style={{ color: '#8c8c8c', fontSize: '11px' }}>POSITION</Text>}
                         style={{ flex: 1 }}
                     >
-                        <Input className={styles.searchInput} placeholder="Manager" />
+                        <Input  placeholder="Manager" />
                     </Form.Item>
                 </div>
 

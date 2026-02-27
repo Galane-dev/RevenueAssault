@@ -3,6 +3,7 @@
 import React from "react";
 import { Button } from "antd";
 import { useStyles } from "./style";
+import Link from "next/link";
 
 export default function LandingPage() {
   const { styles, cx } = useStyles();
@@ -41,9 +42,11 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <Button className={styles.ctaBtn}>
-          Continue to Dashboard
-        </Button>
+        <Link href="/dashboard" passHref>
+  <Button className={styles.ctaBtn}>
+    Continue to Dashboard
+  </Button>
+</Link>
       </section>
 
       <a href="#" className={styles.policy}>Policy</a>

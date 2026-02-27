@@ -39,6 +39,7 @@ export interface IProposalActionContext {
     submitProposal: (id: string) => Promise<void>;
     approveProposal: (id: string) => Promise<void>;
     rejectProposal: (id: string) => Promise<void>;
+    deleteProposal: (id: string) => Promise<void>;
     updateFilters: (filters: Partial<IProposalStateContext['filters']>) => void;
 }
 

@@ -14,6 +14,8 @@ import { useStyles } from "../style";
 import { ClientStateContext, ClientActionContext } from "@/app/providers/clientProvider/context";
 import { ClientProvider } from "@/app/providers/clientProvider";
 import AddClientModal from "../../components/modals/addClientModal";
+import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -36,7 +38,7 @@ function ClientsContent() {
     confirm({
       title: `Delete ${name}?`,
       icon: <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />,
-      content: 'This action cannot be undone and will remove the client from the database.',
+      content: 'This action cannot be undone and will change status to inactive.',
       okText: 'Delete',
       okType: 'danger',
       cancelText: 'Cancel',
@@ -90,7 +92,7 @@ function ClientsContent() {
           icon={<GlobalOutlined />} 
           href={url} 
           target="_blank" 
-          style={{ color: "#40a9ff", padding: 0 }}
+          style={{ color: "#b6b6b6", padding: 0 }}
         >
           Visit
         </Button>
@@ -103,12 +105,14 @@ function ClientsContent() {
       render: (_: any, record: any) => (
         <Space size="middle">
           <Button type="text" icon={<EditOutlined />} style={{ color: "#8c8c8c" }} />
-          <Button 
-            type="text" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => showDeleteConfirm(record.id, record.name)} 
-          />
+          <Can perform="DELETE_CLIENT">
+            <Button 
+              type="text" 
+              danger 
+              icon={<DeleteOutlined />} 
+              onClick={() => showDeleteConfirm(record.id, record.name)} 
+            />
+          </Can>
         </Space>
       ),
     },
@@ -121,22 +125,23 @@ function ClientsContent() {
           <Text style={{ color: '#595959', letterSpacing: '2px', fontSize: '12px' }}>CRM / RELATIONSHIPS</Text>
           <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>CLIENTS</Title>
         </header>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          size="large" 
-          className={styles.primaryButton}
-          onClick={() => setIsModalOpen(true)}
-        >
-          ADD NEW CLIENT
-        </Button>
+        <Can perform="CREATE_CLIENT">
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            size="large" 
+            className={styles.primaryButton}
+            onClick={() => setIsModalOpen(true)}
+          >
+            ADD NEW CLIENT
+          </Button>
+        </Can>
       </div>
 
       <div className={styles.filterSection}>
         <Input
           placeholder="Search by company name or industry..."
           prefix={<SearchOutlined style={{ color: '#595959' }} />}
-          className={styles.searchInput}
           value={filters.searchTerm}
           onChange={(e) => {
             // Update global filters via action
@@ -160,19 +165,21 @@ function ClientsContent() {
         }}
       />
 
-      <AddClientModal 
-        open={isModalOpen} 
-        onCancel={() => setIsModalOpen(false)} 
-      />
+      <Can perform="CREATE_CLIENT">
+        <AddClientModal 
+          open={isModalOpen} 
+          onCancel={() => setIsModalOpen(false)} 
+        />
+      </Can>
     </>
   );
 }
 
 // Wrap the content with the Provider
-export default function ClientsPage() {
+export default withAuth(function ClientsPage() {
   return (
     <ClientProvider>
       <ClientsContent />
     </ClientProvider>
   );
-}
+});

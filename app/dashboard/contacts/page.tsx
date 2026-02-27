@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
-import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip } from "antd";
-import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined } from "@ant-design/icons";
+import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip, message } from "antd";
+import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
 import { ContactProvider, ContactStateContext, ContactActionContext } from "@/app/providers/contactProvider";
 import { ClientProvider, ClientStateContext, ClientActionContext } from "../../providers/clientProvider";
 import AddContactModal from "../../components/modals/addContactModal";
+import { Can } from "../../components/auth/can";
+import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
 
@@ -29,6 +31,17 @@ function ContactsContent() {
             clientActions?.getClients({ pageNumber: 1, pageSize: 100 });
         }
     }, [clients, clientActions]);
+
+    const handleDeleteContact = (id: string, name: string) => {
+        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+            try {
+                contactActions?.deleteContact(id);
+                message.success("Contact deleted successfully");
+            } catch (error) {
+                message.error("Failed to delete contact");
+            }
+        }
+    };
 
     const columns = [
         {
@@ -84,7 +97,7 @@ function ContactsContent() {
             render: (text: string, record: any) => (
                 <Space direction="vertical" size={0}>
                     <Text style={{ color: '#d9d9d9' }}>{text || "Stakeholder"}</Text>
-                    {record.isPrimaryContact && <Tag color="blue" style={{ fontSize: '10px', marginTop: 4 }}>PRIMARY</Tag>}
+                    {record.isPrimaryContact && <Tag color="#21c718"  style={{ fontSize: '10px', marginTop: 4, backgroundColor:" #00cc0b62" }}>PRIMARY</Tag>}
                 </Space>
             )
         },
@@ -93,14 +106,25 @@ function ContactsContent() {
             key: "actions",
             align: 'right' as const,
             render: (record: any) => (
-                <Button 
-                    type="text" 
-                    disabled={record.isPrimaryContact}
-                    onClick={() => contactActions?.setPrimary(record.id)}
-                    style={{ color: record.isPrimaryContact ? '#262626' : '#1677ff', fontSize: '12px' }}
-                >
-                    {record.isPrimaryContact ? "PRIMARY" : "SET AS PRIMARY"}
-                </Button>
+                <Space>
+                    <Button 
+                        type="text" 
+                        disabled={record.isPrimaryContact}
+                        onClick={() => contactActions?.setPrimary(record.id)}
+                        style={{ color: record.isPrimaryContact ? '#262626' : '#138c1d', fontSize: '12px' }}
+                    >
+                        {record.isPrimaryContact ? "PRIMARY" : "SET AS PRIMARY"}
+                    </Button>
+                    <Can perform="DELETE_CONTACT">
+                        <Button 
+                            type="text" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            onClick={() => handleDeleteContact(record.id, `${record.firstName} ${record.lastName}`)}
+                            style={{ fontSize: '12px' }}
+                        />
+                    </Can>
+                </Space>
             )
         }
     ];
@@ -116,21 +140,22 @@ function ContactsContent() {
                         CONTACT DIRECTORY
                     </Title>
                 </header>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    className={styles.primaryButton} 
-                    size="large"
-                    onClick={() => setIsModalOpen(true)}
-                >
-                    ADD NEW CONTACT
-                </Button>
+                <Can perform="CREATE_CONTACT">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        className={styles.primaryButton} 
+                        size="large"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        ADD NEW CONTACT
+                    </Button>
+                </Can>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, gap: 16 }}>
                 <Input 
                     placeholder="Search by name, email or phone..." 
-                    className={styles.searchInput}
                     style={{ maxWidth: 400 }}
                     prefix={<SearchOutlined style={{ color: '#595959' }} />}
                     value={filters.searchTerm}
@@ -138,7 +163,6 @@ function ContactsContent() {
                 />
                 <Select 
                     placeholder="Filter by Client" 
-                    className={styles.searchInput}
                     style={{ width: 250 }}
                     allowClear
                     onChange={(val) => contactActions?.updateFilters({ clientId: val, pageNumber: 1 })}
@@ -165,15 +189,17 @@ function ContactsContent() {
                 }}
             />
 
-            <AddContactModal 
-                open={isModalOpen} 
-                onCancel={() => setIsModalOpen(false)} 
-            />
+            <Can perform="CREATE_CONTACT">
+                <AddContactModal 
+                    open={isModalOpen} 
+                    onCancel={() => setIsModalOpen(false)} 
+                />
+            </Can>
         </div>
     );
 }
 
-export default function ContactsPage() {
+export default withAuth(function ContactsPage() {
     return (
         <ClientProvider>
             <ContactProvider>
@@ -181,4 +207,4 @@ export default function ContactsPage() {
             </ContactProvider>
         </ClientProvider>
     );
-}
+});

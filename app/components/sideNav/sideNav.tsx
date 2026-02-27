@@ -11,7 +11,6 @@ import {
   CalendarOutlined,
   FolderOpenOutlined,
   BarChartOutlined,
-  SettingOutlined,
   LogoutOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
@@ -46,11 +45,11 @@ export default function SideNav() {
     { key: "/dashboard/clients", icon: <UserOutlined />, label: "Clients" },
     { key: "/dashboard/opportunities", icon: <RocketOutlined />, label: "Opportunities" },
     { key: "/dashboard/proposals", icon: <FileTextOutlined />, label: "Proposals" },
+    { key: "/dashboard/contracts", icon: <FileTextOutlined />, label: "Contracts" },
     { key: "/dashboard/contacts", icon: <UserOutlined />, label: "Contacts" },
     { key: "/dashboard/pricing", icon: <DollarOutlined />, label: "Pricing" },
     { key: "/dashboard/activities", icon: <CalendarOutlined />, label: "Activities" },
     { key: "/dashboard/documents", icon: <FolderOpenOutlined />, label: "Documents" },
-    { key: "/dashboard/reports", icon: <BarChartOutlined />, label: "Reports" },
   ];
 
   return (
@@ -102,7 +101,6 @@ export default function SideNav() {
                 if (key === "settings") router.push("/dashboard/settings");
               }}
               items={[
-                { key: "settings", icon: <SettingOutlined />, label: "Settings" },
                 { key: "logout", icon: <LogoutOutlined />, label: "Logout" },
               ]}
             />
@@ -116,7 +114,7 @@ export default function SideNav() {
                 />
                 <div className={styles.userInfo}>
                   <Text className={styles.userName}>
-                    {user ? `${user.firstName} ${user.lastName}` : "Admin"}
+                    {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || "User"}
                   </Text>
                   <Text className={styles.userRole}>
                     {user?.roles?.[0] || "Sales Executive"}

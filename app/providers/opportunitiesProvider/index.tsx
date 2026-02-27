@@ -26,6 +26,37 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const actions = useMemo(() => ({
         getOpportunities,
         
+        getMyOpportunities: async () => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get("/api/opportunities/my-opportunities");
+                dispatch(setOpportunities(response.data));
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
+
+        getPipeline: async (filters: any) => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get("/api/opportunities/pipeline", { params: filters });
+                dispatch(setOpportunities(response.data));
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
+
+        getStageHistory: async (id: string) => {
+            dispatch(setPending());
+            try {
+                const response = await getAxiosInstance().get(`/api/opportunities/${id}/stage-history`);
+                // This might be stored differently - could return details
+                return response.data;
+            } catch (e) {
+                dispatch(setError());
+            }
+        },
+        
         createOpportunity: async (values: any) => {
             dispatch(setPending());
             try {
@@ -42,7 +73,7 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
             try {
                 // The API expects: { newStage: int, notes: string, lossReason: string }
                 const payload = { 
-                    newStage: Number(stage), 
+                    stage: Number(stage), 
                     notes: reason || "Stage updated via pipeline",
                     // If stage is 6 (LOST), we send the reason as lossReason, otherwise null
                     lossReason: stage === 6 ? reason : "" 
@@ -63,6 +94,18 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 }
                 throw e;
             }
+        },
+        deleteOpportunity: async (id: string) => {
+            try {
+                await getAxiosInstance().delete(`/api/opportunities/${id}`);
+                getOpportunities(state.filters);
+            } catch (e) { dispatch(setError()); }
+        },
+        assignOpportunity: async (id: string, assignedToId: string) => {
+            try {
+                await getAxiosInstance().post(`/api/opportunities/${id}/assign`, { assignedToId });
+                getOpportunities(state.filters);
+            } catch (e) { dispatch(setError()); }
         },
         updateFilters: (newFilters: any) => {
             dispatch(setFilters({ filters: newFilters }));

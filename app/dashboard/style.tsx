@@ -126,8 +126,8 @@ export const useStyles = createStyles(({ css }) => ({
 
   kpiCard: css`
     background: #000 !important;
-    border: 1px solid #1a1a1a !important;
-    border-radius: 0 !important;
+    border: 1px solid #7d7d7d !important;
+    border-radius: 4px !important;
     height: 100%;
     
     .ant-card-head {
@@ -136,7 +136,7 @@ export const useStyles = createStyles(({ css }) => ({
       min-height: 50px;
       
       .ant-card-head-title {
-        color: #595959;
+        color: #e7e7e7;
         text-align: center;
         font-family: var(--font-monda);
         font-size: 14px;
@@ -170,27 +170,27 @@ export const useStyles = createStyles(({ css }) => ({
   customTable: css`
     .ant-table {
       background: transparent !important;
-      border: 1px solid #1a1a1a;
+      border: 1px solid #8d8b8b;
       border-radius: 0;
     }
 
     .ant-pagination-item-active {
-      border-color: #404040 !important;
-      background: #1a1a1a !important;
+      border-color: #8d8b8b !important;
+      background: #000000 !important;
       a { color: #fff !important; }
     }
 
     .ant-pagination-item, .ant-pagination-prev, .ant-pagination-next {
       background: transparent !important;
-      border: 1px solid #1a1a1a;
+      border: 1px solid #444444;
       a { color: #8c8c8c !important; }
     }
   
 
     .ant-table-thead > tr > th {
       background: #0a0a0a !important;
-      color: #595959 !important;
-      border-bottom: 1px solid #1a1a1a !important;
+      color: #e7e7e7 !important;
+      border-bottom: 1px solid #8d8b8b !important;
       font-family: var(--font-monda);
       font-size: 12px;
       padding: 16px;
@@ -198,7 +198,7 @@ export const useStyles = createStyles(({ css }) => ({
     }
 
     .ant-table-tbody > tr > td {
-      border-bottom: 1px solid #1a1a1a !important;
+      border-bottom: 1px solid #585858 !important;
       background: #000 !important;
       color: #fff;
       padding: 20px 16px;
@@ -292,9 +292,9 @@ sider: css`
   `,
 
   primaryButton: css`
-    background: #fff !important;
-    color: #000 !important;
-    border: none !important;
+    background: #232323 !important;
+    color: #ffffff !important;
+    border: #525151 solid 2px !important;
     border-radius: 4px !important;
     font-weight: 600;
     font-family: var(--font-monda);
@@ -302,7 +302,7 @@ sider: css`
     padding: 0 24px;
 
     &:hover {
-      background: #e6e6e6 !important;
+      background: #ffffff !important;
       color: #000 !important;
     }
   `,
