@@ -18,8 +18,11 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 
 // Components
 import CreateProposalModal from "../../components/modals/createProposal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIProposalsContext } from "@/app/providers/proposalProvider/useAIContext";
 
 const { Title, Text } = Typography;
 
@@ -34,6 +37,10 @@ function ProposalsContent() {
     const { styles } = useStyles();
     const { proposals, filters, totalCount, isPending } = useContext(ProposalStateContext);
     const actions = useContext(ProposalActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Proposals',
+    });
+    const aiContext = useAIProposalsContext();
 
     // --- State to control the Modal ---
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -158,17 +165,23 @@ function ProposalsContent() {
                         PROPOSALS & QUOTES
                     </Title>
                 </header>
-                <Can perform="CREATE_PROPOSAL">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsCreateModalOpen(true)} // Hooked up the click
-                    >
-                        CREATE PROPOSAL
-                    </Button>
-                </Can>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about proposals"
+                    />
+                    <Can perform="CREATE_PROPOSAL">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsCreateModalOpen(true)} // Hooked up the click
+                        >
+                            CREATE PROPOSAL
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <Table 
@@ -192,6 +205,14 @@ function ProposalsContent() {
                     onCancel={() => setIsCreateModalOpen(false)} 
                 />
             </Can>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Proposals AI Assistant"
+                pageTitle="Proposals"
+            />
         </div>
     );
 }

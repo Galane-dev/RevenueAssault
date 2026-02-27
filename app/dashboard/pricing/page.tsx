@@ -20,8 +20,11 @@ import { OpportunityProvider } from "../../providers/opportunitiesProvider";
 
 // Components
 import AddPricingRequestModal from "../../components/modals/addPricingRequestModal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIPricingContext } from "@/app/providers/pricingProvider/useAIContext";
 
 const { Title, Text } = Typography;
 
@@ -43,6 +46,10 @@ function PricingContent() {
     const { styles } = useStyles();
     const { requests, filters, totalCount, isPending } = useContext(PricingStateContext);
     const pricingActions = useContext(PricingActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Pricing',
+    });
+    const aiContext = useAIPricingContext();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -110,17 +117,23 @@ function PricingContent() {
                         PRICING REQUESTS
                     </Title>
                 </header>
-                <Can perform="CREATE_PRICING_REQUEST">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        NEW REQUEST
-                    </Button>
-                </Can>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about pricing"
+                    />
+                    <Can perform="CREATE_PRICING_REQUEST">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsModalOpen(true)}
+                        >
+                            NEW REQUEST
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, gap: 16 }}>
@@ -170,6 +183,14 @@ function PricingContent() {
                     onCancel={() => setIsModalOpen(false)} 
                 />
             </Can>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Pricing AI Assistant"
+                pageTitle="Pricing"
+            />
         </div>
     );
 }

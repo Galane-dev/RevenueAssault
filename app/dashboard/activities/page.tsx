@@ -27,8 +27,11 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 
 // Components
 import LogActivityModal from "../../components/modals/logActivityModal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIActivitiesContext } from "@/app/providers/activityProvider/useAIContext";
 
 dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
@@ -56,6 +59,10 @@ function ActivityFeedContent() {
     const { styles } = useStyles();
     const { activities, filters, totalCount, isPending } = useContext(ActivityStateContext);
     const activityActions = useContext(ActivityActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Activities',
+    });
+    const aiContext = useAIActivitiesContext();
     
     const [activeTab, setActiveTab] = useState("all");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -214,17 +221,23 @@ function ActivityFeedContent() {
                         ACTIVITY FEED
                     </Title>
                 </header>
-                <Can perform="CREATE_ACTIVITY">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton}
-                        size="large"
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        LOG ACTIVITY
-                    </Button>
-                </Can>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about activities"
+                    />
+                    <Can perform="CREATE_ACTIVITY">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton}
+                            size="large"
+                            onClick={() => setIsModalOpen(true)}
+                        >
+                            LOG ACTIVITY
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             {/* View Tabs */}
@@ -287,6 +300,14 @@ function ActivityFeedContent() {
                     onCancel={() => setIsModalOpen(false)} 
                 />
             </Can>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Activities AI Assistant"
+                pageTitle="Activities"
+            />
         </div>
     );
 }

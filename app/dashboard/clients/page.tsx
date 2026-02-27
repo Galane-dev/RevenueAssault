@@ -17,6 +17,7 @@ import { ClientProvider } from "@/app/providers/clientProvider";
 import AddClientModal from "../../components/modals/addClientModal";
 import { AIChatComponent, ChatButton } from "../../components/ai";
 import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIClientsContext } from "@/app/providers/clientProvider/useAIContext";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 
@@ -27,9 +28,10 @@ function ClientsContent() {
   const { styles } = useStyles();
   
   // AI Chat
-  const { isChatOpen, chatContext, openChat, closeChat, updateChatContext } = useAIChat({ 
+  const { isChatOpen, openChat, closeChat } = useAIChat({ 
     pageTitle: 'Clients' 
   });
+  const aiContext = useAIClientsContext();
 
   // Consuming contexts modeled after the Machine pattern
   const { clients, totalCount, isPending, filters } = useContext(ClientStateContext);
@@ -42,24 +44,6 @@ function ClientsContent() {
   useEffect(() => {
     actions?.getClients(filters);
   }, [filters, actions]);
-
-  // Update chat context with clients data
-  useEffect(() => {
-    if (!clients) return;
-    updateChatContext({
-      totalClients: totalCount,
-      displayedClients: clients.length,
-      clients: clients.map(client => ({
-        id: client.id,
-        name: client.name,
-        industry: client.industry,
-      })),
-      filters: {
-        searchTerm: filters.searchTerm,
-        pageNumber: filters.pageNumber,
-      },
-    });
-  }, [clients, totalCount, filters, updateChatContext]);
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     actions?.updateFilters?.({ searchTerm: value, pageNumber: 1 });
@@ -163,7 +147,7 @@ function ClientsContent() {
         </header>
         <div style={{ display: "flex", gap: 12 }}>
           <ChatButton 
-            onClick={() => openChat(chatContext)}
+            onClick={() => openChat(aiContext)}
             title="Ask AI about clients"
           />
           <Can perform="CREATE_CLIENT">
@@ -215,7 +199,7 @@ function ClientsContent() {
       <AIChatComponent 
         open={isChatOpen}
         onClose={closeChat}
-        context={chatContext}
+        context={aiContext}
         title="Clients AI Assistant"
         pageTitle="Clients"
       />

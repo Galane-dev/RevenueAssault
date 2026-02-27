@@ -22,10 +22,13 @@ import { ClientProvider } from "@/app/providers/clientProvider";
 
 // Components
 import CreateContractModal from "../../components/modals/createContractModal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 import { ProposalProvider } from "@/app/providers/proposalProvider";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIContractsContext } from "@/app/providers/contractProvider/useAIContext";
 
 const { Title, Text } = Typography;
 
@@ -40,6 +43,10 @@ function ContractsContent() {
     const { styles } = useStyles();
     const { contracts, filters, totalCount, isPending } = useContext(ContractStateContext);
     const actions = useContext(ContractActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Contracts',
+    });
+    const aiContext = useAIContractsContext();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -273,17 +280,23 @@ function ContractsContent() {
                         CONTRACTS & AGREEMENTS
                     </Title>
                 </header>
-                <Can perform="CREATE_CONTRACT">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsCreateModalOpen(true)}
-                    >
-                        CREATE CONTRACT
-                    </Button>
-                </Can>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about contracts"
+                    />
+                    <Can perform="CREATE_CONTRACT">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
+                            CREATE CONTRACT
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, display: 'flex', gap: '16px' }}>
@@ -428,6 +441,14 @@ function ContractsContent() {
                     onCancel={() => setIsCreateModalOpen(false)} 
                 />
             </Can>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Contracts AI Assistant"
+                pageTitle="Contracts"
+            />
         </div>
     );
 }

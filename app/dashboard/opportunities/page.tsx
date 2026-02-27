@@ -40,7 +40,7 @@ function OpportunitiesContent() {
     const { opportunities, filters, totalCount, isPending } = useContext(OpportunityStateContext);
     const actions = useContext(OpportunityActionContext);
 
-    const { isChatOpen, chatContext, openChat, closeChat } = useAIChat({ 
+    const { isChatOpen, openChat, closeChat } = useAIChat({ 
         pageTitle: 'Opportunities' 
     });
     const aiContext = useAIOpportunitiesContext();

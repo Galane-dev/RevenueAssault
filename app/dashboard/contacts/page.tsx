@@ -11,6 +11,7 @@ import { ClientProvider, ClientStateContext, ClientActionContext } from "../../p
 import AddContactModal from "../../components/modals/addContactModal";
 import { AIChatComponent, ChatButton } from "../../components/ai";
 import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIContactsContext } from "@/app/providers/contactProvider/useAIContext";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 
@@ -23,9 +24,10 @@ function ContactsContent() {
     const { clients } = useContext(ClientStateContext);
     const clientActions = useContext(ClientActionContext);
 
-    const { isChatOpen, chatContext, openChat, closeChat, updateChatContext } = useAIChat({ 
+    const { isChatOpen, openChat, closeChat } = useAIChat({ 
         pageTitle: 'Contacts' 
     });
+    const aiContext = useAIContactsContext();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchInput, setSearchInput] = useState("");
@@ -33,25 +35,6 @@ function ContactsContent() {
     useEffect(() => {
         contactActions?.getContacts(filters);
     }, [filters, contactActions]);
-
-    // Update chat context with contacts data
-    useEffect(() => {
-        if (!contacts) return;
-        updateChatContext({
-            totalContacts: totalCount,
-            displayedContacts: contacts.length,
-            contacts: contacts.map(contact => ({
-                id: contact.id,
-                name: contact.name,
-                title: contact.title,
-                clientId: contact.clientId,
-            })),
-            filters: {
-                searchTerm: filters.searchTerm,
-                pageNumber: filters.pageNumber,
-            },
-        });
-    }, [contacts, totalCount, filters, updateChatContext]);
 
     const debouncedSearch = useDebouncedCallback((value: string) => {
         contactActions?.updateFilters({ searchTerm: value, pageNumber: 1 });
@@ -179,7 +162,7 @@ function ContactsContent() {
                 </header>
                 <div style={{ display: "flex", gap: 12 }}>
                     <ChatButton 
-                        onClick={() => openChat(chatContext)}
+                        onClick={() => openChat(aiContext)}
                         title="Ask AI about contacts"
                     />
                     <Can perform="CREATE_CONTACT">
@@ -243,7 +226,7 @@ function ContactsContent() {
             <AIChatComponent 
                 open={isChatOpen}
                 onClose={closeChat}
-                context={chatContext}
+                context={aiContext}
                 title="Contacts AI Assistant"
                 pageTitle="Contacts"
             />

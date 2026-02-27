@@ -21,10 +21,13 @@ import dayjs from "dayjs";
 // Providers
 import { DocumentProvider, DocumentStateContext, DocumentActionContext } from "@/app/providers/documentProvider";
 import { DocumentCategory } from "@/app/providers/documentProvider/context";
+import { useAIDocumentsContext } from "@/app/providers/documentProvider/useAIContext";
 
 // Components
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
 
 import relativeTime from "dayjs/plugin/relativeTime"; // 1. Import the plugin
 
@@ -56,6 +59,10 @@ function DocumentManagerContent() {
     const { styles } = useStyles();
     const { documents, filters, totalCount, isPending } = useContext(DocumentStateContext);
     const documentActions = useContext(DocumentActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Documents',
+    });
+    const aiContext = useAIDocumentsContext();
     
     const [selectedCategory, setSelectedCategory] = useState<number>(1);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -172,12 +179,20 @@ function DocumentManagerContent() {
     return (
         <div style={{ padding: '0 24px' }}>
             <div style={{ marginBottom: 32 }}>
-                <Text style={{ color: '#595959', letterSpacing: '2px', fontSize: '10px', fontWeight: 700 }}>
-                    ASSET MANAGEMENT
-                </Text>
-                <Title level={2} className={styles.pageTitle} style={{ margin: 0, marginTop: 4 }}>
-                    DOCUMENT REPOSITORY
-                </Title>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <div>
+                        <Text style={{ color: '#595959', letterSpacing: '2px', fontSize: '10px', fontWeight: 700 }}>
+                            ASSET MANAGEMENT
+                        </Text>
+                        <Title level={2} className={styles.pageTitle} style={{ margin: 0, marginTop: 4 }}>
+                            DOCUMENT REPOSITORY
+                        </Title>
+                    </div>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about documents"
+                    />
+                </div>
             </div>
 
             <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
@@ -272,6 +287,14 @@ function DocumentManagerContent() {
                     />
                 </div>
             </div>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Documents AI Assistant"
+                pageTitle="Documents"
+            />
         </div>
     );
 }

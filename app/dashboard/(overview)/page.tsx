@@ -18,7 +18,7 @@ import { useStyles } from "../style";
 import { useDashboardActions, useDashboardState } from "../../providers/dashboardProvider";
 import { AIChatComponent, ChatButton } from "../../components/ai";
 import { useAIChat } from "@/app/hooks/useAIChat";
-import { Can } from "../../components/auth/can";
+import { useAIDashboardContext } from "@/app/providers/dashboardProvider/useAIContext";
 import { withAuth } from "../../hoc/withAuth";
 
 const { Title, Text } = Typography;
@@ -27,9 +27,10 @@ function DashboardOverview() {
   const { styles } = useStyles();
   
   // AI Chat
-  const { isChatOpen, chatContext, openChat, closeChat, updateChatContext } = useAIChat({ 
+  const { isChatOpen, openChat, closeChat } = useAIChat({ 
     pageTitle: 'Dashboard Overview' 
   });
+  const aiContext = useAIDashboardContext();
 
   // Subscribe to Global Dashboard State
   const { overview, recentOpportunities, isPending } = useDashboardState();
@@ -40,32 +41,6 @@ function DashboardOverview() {
     getDashboardOverview();
     getRecentOpportunities();
   }, []);
-
-  // Update chat context with dashboard data
-  useEffect(() => {
-    if (!overview) return;
-    updateChatContext({
-      dashboardMetrics: {
-        winRate: overview.winRate,
-        pipelineValue: overview.pipelineValue,
-        activeContracts: overview.activeContracts,
-        contractValue: overview.contractValue,
-      },
-      recentOpportunities: (recentOpportunities || []).map(opp => ({
-        id: opp.id,
-        title: opp.title,
-        clientName: opp.clientName,
-        estimatedValue: opp.estimatedValue,
-        stage: opp.stage,
-      })),
-      monthlyTrend: overview.monthlyTrend,
-      summary: {
-        totalActivities: overview.totalActivities,
-        completedActivities: overview.completedActivities,
-        pendingActivities: overview.pendingActivities,
-      },
-    });
-  }, [overview, recentOpportunities, updateChatContext]);
 
   const opportunityColumns = [
     {
@@ -125,15 +100,13 @@ function DashboardOverview() {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <header className={styles.header}>
-          <Title level={2} className={styles.pageTitle}>DASHBOARD OVERVIEW</Title>
-        </header>
-        <ChatButton 
-          onClick={() => openChat(chatContext)}
-          title="Ask AI about your dashboard"
+      <header className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={2} className={styles.pageTitle}>DASHBOARD OVERVIEW</Title>
+        <ChatButton
+          onClick={() => openChat(aiContext)}
+          title="Ask AI about dashboard"
         />
-      </div>
+      </header>
 
       <Row gutter={[24, 24]}>
         {/* Win Rate - Large Box at Top (Majority Width) */}
@@ -344,11 +317,10 @@ function DashboardOverview() {
         />
       </div>
 
-      {/* AI Chat Component */}
-      <AIChatComponent 
+      <AIChatComponent
         open={isChatOpen}
         onClose={closeChat}
-        context={chatContext}
+        context={aiContext}
         title="Dashboard AI Assistant"
         pageTitle="Dashboard Overview"
       />
