@@ -133,10 +133,8 @@ export default function AuthPage() {
                   <>
                     <Alert
                       type="info"
-                      showIcon
                       message="You've been invited to join an organisation"
-                      description="Your organisation and role were pre-filled from the invite link."
-                      style={{ marginBottom: 12 }}
+                      style={{ paddingLeft:27 ,marginBottom: 12, backgroundColor: '#29dd6b29', borderColor: '#16c10a', color: '#09ba0f' }}
                     />
                     <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ORGANISATION TENANT</span>}>
                       <Input value={invitedTenantId} disabled />
