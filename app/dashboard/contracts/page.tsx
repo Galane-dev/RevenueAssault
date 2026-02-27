@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { Table, Typography, Tag, Button, Space, Tooltip, message, Input, Select, Drawer, Divider, Modal } from "antd";
 import { 
     PlusOutlined, 
@@ -44,10 +45,21 @@ function ContractsContent() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedContract, setSelectedContract] = useState<any>(null);
     const [renewDate, setRenewDate] = useState<string>("");
+    const [searchInput, setSearchInput] = useState("");
 
     useEffect(() => {
         actions?.getContracts(filters);
     }, [filters, actions]);
+
+    const debouncedSearch = useDebouncedCallback((value: string) => {
+        actions?.updateFilters({ searchTerm: value, pageNumber: 1 });
+    }, 500);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchInput(value);
+        debouncedSearch(value);
+    };
 
     const handleRowClick = (record: any) => {
         setSelectedContract(record);
@@ -279,8 +291,8 @@ function ContractsContent() {
                     placeholder="Search contracts..." 
                     style={{ width: 300 }}
                     prefix={<FilePdfOutlined style={{ color: '#595959' }} />}
-                    value={filters.searchTerm}
-                    onChange={(e) => actions?.updateFilters({ searchTerm: e.target.value, pageNumber: 1 })}
+                    value={searchInput}
+                    onChange={handleSearchChange}
                 />
                 <Select 
                     placeholder="Filter by Status" 

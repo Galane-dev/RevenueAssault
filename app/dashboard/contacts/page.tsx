@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip, message } from "antd";
 import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
@@ -21,10 +22,21 @@ function ContactsContent() {
     const clientActions = useContext(ClientActionContext);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchInput, setSearchInput] = useState("");
 
     useEffect(() => {
         contactActions?.getContacts(filters);
     }, [filters, contactActions]);
+
+    const debouncedSearch = useDebouncedCallback((value: string) => {
+        contactActions?.updateFilters({ searchTerm: value, pageNumber: 1 });
+    }, 500);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchInput(value);
+        debouncedSearch(value);
+    };
 
     useEffect(() => {
         if (!clients || clients.length === 0) {
@@ -158,8 +170,8 @@ function ContactsContent() {
                     placeholder="Search by name, email or phone..." 
                     style={{ maxWidth: 400 }}
                     prefix={<SearchOutlined style={{ color: '#595959' }} />}
-                    value={filters.searchTerm}
-                    onChange={(e) => contactActions?.updateFilters({ searchTerm: e.target.value, pageNumber: 1 })}
+                    value={searchInput}
+                    onChange={handleSearchChange}
                 />
                 <Select 
                     placeholder="Filter by Client" 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useContext } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { Table, Input, Tag, Space, Button, Typography, message, Modal } from "antd";
 import { 
   SearchOutlined, 
@@ -28,11 +29,22 @@ function ClientsContent() {
   const actions = useContext(ClientActionContext);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
 
   // Trigger fetch whenever global filters change
   useEffect(() => {
     actions?.getClients(filters);
   }, [filters, actions]);
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    actions?.updateFilters?.({ searchTerm: value, pageNumber: 1 });
+  }, 500);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    debouncedSearch(value);
+  };
 
   const showDeleteConfirm = (id: string, name: string) => {
     confirm({
@@ -142,11 +154,8 @@ function ClientsContent() {
         <Input
           placeholder="Search by company name or industry..."
           prefix={<SearchOutlined style={{ color: '#595959' }} />}
-          value={filters.searchTerm}
-          onChange={(e) => {
-            // Update global filters via action
-            actions?.updateFilters?.({ searchTerm: e.target.value, pageNumber: 1 });
-          }}
+          value={searchInput}
+          onChange={handleSearchChange}
         />
       </div>
 
