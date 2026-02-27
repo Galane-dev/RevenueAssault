@@ -232,4 +232,150 @@ export const useStyles = createStyles(({ css }) => ({
       color: #595959 !important;
     }
   `,
+
+  markdownContent: css`
+    /* Headings */
+    h1, h2, h3, h4, h5, h6 {
+      color: #ffffff;
+      font-family: var(--font-monda);
+      font-weight: 600;
+      margin: 8px 0;
+      line-height: 1.4;
+    }
+
+    h1 {
+      font-size: 16px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 15px;
+    }
+
+    h3, h4, h5, h6 {
+      font-size: 14px;
+    }
+
+    /* Emphasis */
+    strong, b {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    em, i {
+      color: #d9d9d9;
+      font-style: italic;
+    }
+
+    /* Links */
+    a {
+      color: #52c41a;
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #73d13d;
+        text-decoration: underline;
+      }
+    }
+
+    /* Code */
+    code {
+      background: #0a0a0a;
+      color: #52c41a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      display: inline-block;
+    }
+
+    /* Code blocks */
+    pre {
+      background: #0a0a0a;
+      border: 1px solid #303030;
+      border-radius: 4px;
+      padding: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+
+      code {
+        background: transparent;
+        color: #52c41a;
+        padding: 0;
+        display: block;
+        line-height: 1.5;
+        font-size: 12px;
+      }
+    }
+
+    /* Lists */
+    ul, ol {
+      margin: 8px 0;
+      padding-left: 20px;
+      color: #ffffff;
+    }
+
+    li {
+      margin: 4px 0;
+      line-height: 1.5;
+    }
+
+    /* Blockquotes */
+    blockquote {
+      border-left: 3px solid #595959;
+      padding-left: 12px;
+      margin: 8px 0;
+      color: #8c8c8c;
+      font-style: italic;
+    }
+
+    /* Horizontal rule */
+    hr {
+      border: none;
+      border-top: 1px solid #303030;
+      margin: 12px 0;
+    }
+
+    /* Tables */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 8px 0;
+      font-size: 12px;
+
+      th, td {
+        border: 1px solid #303030;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background: #0a0a0a;
+        color: #ffffff;
+        font-weight: 600;
+      }
+
+      td {
+        color: #ffffff;
+      }
+
+      tr:hover {
+        background: #0a0a0a;
+      }
+    }
+
+    /* Paragraph */
+    p {
+      margin: 4px 0;
+      line-height: 1.5;
+      color: #ffffff;
+    }
+
+    /* Line breaks */
+    br {
+      margin: 4px 0;
+    }
+  `,
 }));

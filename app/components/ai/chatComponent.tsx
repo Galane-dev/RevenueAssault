@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Drawer, Input, Button, Space, Spin, Empty, message, Tooltip, Divider, Tag } from 'antd';
 import { SendOutlined, DeleteOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
+import ReactMarkdown from 'react-markdown';
 import { useStyles } from './style';
 
 export interface ChatMessage {
@@ -176,7 +177,43 @@ export const AIChatComponent: React.FC<ChatComponentProps> = ({
                                     if (btn) btn.style.opacity = '0';
                                 }}
                             >
-                                <div>{msg.content}</div>
+                                {msg.role === 'assistant' ? (
+                                    <div className={styles.markdownContent}>
+                                        <ReactMarkdown
+                                            components={{
+                                                p: ({ children }) => <p style={{ margin: 0 }}>{children}</p>,
+                                                ul: ({ children }) => <ul style={{ marginTop: 4, marginBottom: 4 }}>{children}</ul>,
+                                                ol: ({ children }) => <ol style={{ marginTop: 4, marginBottom: 4 }}>{children}</ol>,
+                                                li: ({ children }) => <li>{children}</li>,
+                                                h1: ({ children }) => <h1>{children}</h1>,
+                                                h2: ({ children }) => <h2>{children}</h2>,
+                                                h3: ({ children }) => <h3>{children}</h3>,
+                                                code: ({ node, children, ...props }: any) =>
+                                                    node?.parent?.type === 'paragraph' ? (
+                                                        <code>{children}</code>
+                                                    ) : (
+                                                        <pre><code>{children}</code></pre>
+                                                    ),
+                                                blockquote: ({ children }) => <blockquote>{children}</blockquote>,
+                                                a: ({ href, children }) => (
+                                                    <a href={href} target="_blank" rel="noopener noreferrer">
+                                                        {children}
+                                                    </a>
+                                                ),
+                                                table: ({ children }) => <table>{children}</table>,
+                                                thead: ({ children }) => <thead>{children}</thead>,
+                                                tbody: ({ children }) => <tbody>{children}</tbody>,
+                                                tr: ({ children }) => <tr>{children}</tr>,
+                                                th: ({ children }) => <th>{children}</th>,
+                                                td: ({ children }) => <td>{children}</td>,
+                                            }}
+                                        >
+                                            {msg.content}
+                                        </ReactMarkdown>
+                                    </div>
+                                ) : (
+                                    <div>{msg.content}</div>
+                                )}
                                 {msg.role === 'assistant' && (
                                     <Button
                                         data-action-btn
