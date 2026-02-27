@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Drawer, Input, Button, Space, Spin, Empty, message, Tooltip, Divider, Tag } from 'antd';
 import { SendOutlined, DeleteOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import { useStyles } from './style';
+import { useChatActions, useChatState } from '@/app/providers/chatProvider';
+import { getChatPageKey } from '@/app/providers/chatProvider/context';
 
 export interface ChatMessage {
     id: string;
@@ -29,11 +31,24 @@ export const AIChatComponent: React.FC<ChatComponentProps> = ({
     pageTitle,
 }) => {
     const { styles } = useStyles();
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { chatsByPage } = useChatState();
+    const { loadPageChats, appendMessage, clearPageMessages } = useChatActions();
+
+    const effectivePageTitle = useMemo(() => pageTitle || title || 'general', [pageTitle, title]);
+    const pageKey = useMemo(() => getChatPageKey(effectivePageTitle), [effectivePageTitle]);
+    const messages = useMemo(() => chatsByPage[pageKey] || [], [chatsByPage, pageKey]);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        loadPageChats(effectivePageTitle);
+    }, [open, effectivePageTitle, loadPageChats]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,20 +66,17 @@ export const AIChatComponent: React.FC<ChatComponentProps> = ({
             timestamp: new Date(),
         };
 
-        setMessages((prev) => [...prev, userMessage]);
+        const messagesForApi = [...messages, userMessage];
+        await appendMessage(effectivePageTitle, userMessage);
         setInputValue('');
         setLoading(true);
 
         try {
             // Prepare messages for API
-            const apiMessages = messages.map((msg) => ({
+            const apiMessages = messagesForApi.map((msg) => ({
                 role: msg.role === 'user' ? 'user' : 'model',
                 content: msg.content,
             }));
-            apiMessages.push({
-                role: 'user',
-                content: userMessage.content,
-            });
 
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -94,7 +106,7 @@ export const AIChatComponent: React.FC<ChatComponentProps> = ({
                     content: data.message,
                     timestamp: new Date(),
                 };
-                setMessages((prev) => [...prev, assistantMessage]);
+                await appendMessage(effectivePageTitle, assistantMessage);
             } else {
                 message.error(data.error || 'Failed to get response');
             }
@@ -112,8 +124,8 @@ export const AIChatComponent: React.FC<ChatComponentProps> = ({
         }
     };
 
-    const clearMessages = () => {
-        setMessages([]);
+    const clearMessages = async () => {
+        await clearPageMessages(effectivePageTitle);
     };
 
     const copyToClipboard = (content: string, id: string) => {
