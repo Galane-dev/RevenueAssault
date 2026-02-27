@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
@@ -39,10 +40,21 @@ function OpportunitiesContent() {
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedOpp, setSelectedOpp] = useState<IOpportunity | null>(null);
+    const [searchInput, setSearchInput] = useState("");
 
     useEffect(() => {
         actions?.getOpportunities(filters);
     }, [filters, actions]);
+
+    const debouncedSearch = useDebouncedCallback((value: string) => {
+        actions?.updateFilters({ searchTerm: value, pageNumber: 1 });
+    }, 500);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchInput(value);
+        debouncedSearch(value);
+    };
 
     const handleMoveClick = (e: React.MouseEvent, record: IOpportunity) => {
         e.stopPropagation();
@@ -160,8 +172,8 @@ function OpportunitiesContent() {
                     placeholder="Search deals..." 
                     style={{ width: 300 }}
                     prefix={<SearchOutlined style={{ color: '#595959' }} />}
-                    value={filters.searchTerm}
-                    onChange={(e) => actions?.updateFilters({ searchTerm: e.target.value, pageNumber: 1 })}
+                    value={searchInput}
+                    onChange={handleSearchChange}
                 />
                 <Select 
                     placeholder="Filter by Stage" 
