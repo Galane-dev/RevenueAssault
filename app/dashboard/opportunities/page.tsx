@@ -2,8 +2,8 @@
 
 import React, { useEffect, useContext, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm } from "antd";
-import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid } from "antd";
+import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined, AppstoreOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
 // Providers
@@ -33,6 +33,7 @@ const STAGES: Record<number, { label: string, color: string }> = {
 
 function OpportunitiesContent() {
     const { styles } = useStyles();
+    const screens = Grid.useBreakpoint();
     const { opportunities, filters, totalCount, isPending } = useContext(OpportunityStateContext);
     const actions = useContext(OpportunityActionContext);
 
@@ -41,6 +42,7 @@ function OpportunitiesContent() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedOpp, setSelectedOpp] = useState<IOpportunity | null>(null);
     const [searchInput, setSearchInput] = useState("");
+    const [viewType, setViewType] = useState<"list" | "kanban">("list");
 
     useEffect(() => {
         actions?.getOpportunities(filters);
@@ -153,18 +155,40 @@ function OpportunitiesContent() {
                     <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>OPPORTUNITIES</Title>
                 </header>
                 
-                {/* Wrap Creation Button: BDM and above can create opportunities */}
-                <Can perform="CREATE_OPPORTUNITY"> 
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsCreateModalOpen(true)}
-                    >
-                        NEW OPPORTUNITY
-                    </Button>
-                </Can>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    {/* View Toggle - Visible only on lg+ screens */}
+                    {screens.lg && (
+                        <Button.Group>
+                            <Button 
+                                icon={<UnorderedListOutlined />}
+                                type={viewType === "list" ? "primary" : "default"}
+                                onClick={() => setViewType("list")}
+                            >
+                                List
+                            </Button>
+                            <Button 
+                                icon={<AppstoreOutlined />}
+                                type={viewType === "kanban" ? "primary" : "default"}
+                                onClick={() => setViewType("kanban")}
+                            >
+                                Kanban
+                            </Button>
+                        </Button.Group>
+                    )}
+
+                    {/* Wrap Creation Button: BDM and above can create opportunities */}
+                    <Can perform="CREATE_OPPORTUNITY"> 
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
+                            NEW OPPORTUNITY
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 20, display: 'flex', gap: 12 }}>
@@ -187,22 +211,97 @@ function OpportunitiesContent() {
                 </Select>
             </div>
 
-            <Table 
-                columns={columns} 
-                dataSource={opportunities} 
-                loading={isPending}
-                rowKey="id"
-                className={styles.customTable}
-                onRow={(record) => ({
-                    onClick: () => handleRowClick(record),
-                })}
-                pagination={{
-                    total: totalCount,
-                    current: filters.pageNumber,
-                    pageSize: filters.pageSize,
-                    onChange: (page) => actions?.updateFilters({ pageNumber: page })
-                }}
-            />
+            {/* LIST VIEW */}
+            {viewType === "list" && (
+                <Table 
+                    columns={columns} 
+                    dataSource={opportunities} 
+                    loading={isPending}
+                    rowKey="id"
+                    className={styles.customTable}
+                    onRow={(record) => ({
+                        onClick: () => handleRowClick(record),
+                    })}
+                    pagination={{
+                        total: totalCount,
+                        current: filters.pageNumber,
+                        pageSize: filters.pageSize,
+                        onChange: (page) => actions?.updateFilters({ pageNumber: page })
+                    }}
+                />
+            )}
+
+            {/* KANBAN VIEW */}
+            {viewType === "kanban" && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                    {Object.entries(STAGES).map(([stagKey, stageInfo]) => {
+                        const stageNum = Number(stagKey);
+                        const oppsByStage = (opportunities || []).filter(opp => opp.stage === stageNum);
+                        
+                        return (
+                            <div key={stagKey} style={{ background: '#1f1f1f', border: '1px solid #303030', borderRadius: 8, padding: 16 }}>
+                                <div style={{ marginBottom: 16 }}>
+                                    <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
+                                        {stageInfo.label}
+                                    </Tag>
+                                    <Text style={{ color: '#8c8c8c', marginLeft: 8 }}>
+                                        {oppsByStage.length} deal{oppsByStage.length !== 1 ? 's' : ''}
+                                    </Text>
+                                </div>
+
+                                <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 200 }}>
+                                    {oppsByStage.length > 0 ? (
+                                        oppsByStage.map(opp => (
+                                            <Card
+                                                key={opp.id}
+                                                size="small"
+                                                style={{ 
+                                                    background: '#141414', 
+                                                    border: '1px solid #303030',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                                hoverable
+                                                onClick={() => handleRowClick(opp)}
+                                            >
+                                                <div style={{ marginBottom: 8 }}>
+                                                    <Text strong style={{ color: '#fff', display: 'block', marginBottom: 4 }}>
+                                                        {opp.title || "Untitled Deal"}
+                                                    </Text>
+                                                    <Text style={{ color: '#52c41a', fontSize: '12px' }}>
+                                                        {opp.currency || "ZAR"} {(opp.estimatedValue || 0).toLocaleString()}
+                                                    </Text>
+                                                </div>
+
+                                                <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
+
+                                                <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+                                                    <Button 
+                                                        type="text" 
+                                                        size="small"
+                                                        icon={<EditOutlined />} 
+                                                        onClick={(e) => handleMoveClick(e, opp)}
+                                                        style={{ color: '#595959' }}
+                                                    >
+                                                        Move
+                                                    </Button>
+                                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                                        {opp.probability || 0}% prob
+                                                    </Text>
+                                                </div>
+                                            </Card>
+                                        ))
+                                    ) : (
+                                        <div style={{ color: '#595959', textAlign: 'center', padding: '16px 0', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            No deals
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             <Drawer
                 title={
