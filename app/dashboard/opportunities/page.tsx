@@ -16,9 +16,12 @@ import { EntityType } from "@/app/providers/noteProvider/context";
 import CreateOpportunityModal from "../../components/modals/addOpportunityModal";
 import MoveStageModal from "../../components/modals/moveStageModal";
 import { NoteSection } from "../../components/notes/notes"; 
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { IOpportunity } from "@/app/providers/opportunitiesProvider/context";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIOpportunitiesContext } from "@/app/providers/opportunitiesProvider/useAIContext";
 
 const { Title, Text } = Typography;
 
@@ -36,6 +39,11 @@ function OpportunitiesContent() {
     const screens = Grid.useBreakpoint();
     const { opportunities, filters, totalCount, isPending } = useContext(OpportunityStateContext);
     const actions = useContext(OpportunityActionContext);
+
+    const { isChatOpen, chatContext, openChat, closeChat } = useAIChat({ 
+        pageTitle: 'Opportunities' 
+    });
+    const aiContext = useAIOpportunitiesContext();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
@@ -212,6 +220,12 @@ function OpportunitiesContent() {
                             </Button>
                         </Button.Group>
                     )}
+
+                    {/* AI Chat Button */}
+                    <ChatButton 
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about opportunities"
+                    />
 
                     {/* Wrap Creation Button: BDM and above can create opportunities */}
                     <Can perform="CREATE_OPPORTUNITY"> 
@@ -501,6 +515,15 @@ function OpportunitiesContent() {
                     </Typography.Text>
                 </Form>
             </Modal>
+
+            {/* AI Chat Component */}
+            <AIChatComponent 
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Opportunities AI Assistant"
+                pageTitle="Opportunities"
+            />
         </>
     );
 }

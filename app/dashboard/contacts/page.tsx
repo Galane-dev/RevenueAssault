@@ -9,6 +9,8 @@ import { useStyles } from "../style";
 import { ContactProvider, ContactStateContext, ContactActionContext } from "@/app/providers/contactProvider";
 import { ClientProvider, ClientStateContext, ClientActionContext } from "../../providers/clientProvider";
 import AddContactModal from "../../components/modals/addContactModal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
+import { useAIChat } from "@/app/hooks/useAIChat";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 
@@ -21,12 +23,35 @@ function ContactsContent() {
     const { clients } = useContext(ClientStateContext);
     const clientActions = useContext(ClientActionContext);
 
+    const { isChatOpen, chatContext, openChat, closeChat, updateChatContext } = useAIChat({ 
+        pageTitle: 'Contacts' 
+    });
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchInput, setSearchInput] = useState("");
 
     useEffect(() => {
         contactActions?.getContacts(filters);
     }, [filters, contactActions]);
+
+    // Update chat context with contacts data
+    useEffect(() => {
+        if (!contacts) return;
+        updateChatContext({
+            totalContacts: totalCount,
+            displayedContacts: contacts.length,
+            contacts: contacts.map(contact => ({
+                id: contact.id,
+                name: contact.name,
+                title: contact.title,
+                clientId: contact.clientId,
+            })),
+            filters: {
+                searchTerm: filters.searchTerm,
+                pageNumber: filters.pageNumber,
+            },
+        });
+    }, [contacts, totalCount, filters, updateChatContext]);
 
     const debouncedSearch = useDebouncedCallback((value: string) => {
         contactActions?.updateFilters({ searchTerm: value, pageNumber: 1 });
@@ -152,17 +177,23 @@ function ContactsContent() {
                         CONTACT DIRECTORY
                     </Title>
                 </header>
-                <Can perform="CREATE_CONTACT">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        ADD NEW CONTACT
-                    </Button>
-                </Can>
+                <div style={{ display: "flex", gap: 12 }}>
+                    <ChatButton 
+                        onClick={() => openChat(chatContext)}
+                        title="Ask AI about contacts"
+                    />
+                    <Can perform="CREATE_CONTACT">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsModalOpen(true)}
+                        >
+                            ADD NEW CONTACT
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, gap: 16 }}>
@@ -207,6 +238,15 @@ function ContactsContent() {
                     onCancel={() => setIsModalOpen(false)} 
                 />
             </Can>
+
+            {/* AI Chat Component */}
+            <AIChatComponent 
+                open={isChatOpen}
+                onClose={closeChat}
+                context={chatContext}
+                title="Contacts AI Assistant"
+                pageTitle="Contacts"
+            />
         </div>
     );
 }

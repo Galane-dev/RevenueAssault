@@ -15,6 +15,8 @@ import { useStyles } from "../style";
 import { ClientStateContext, ClientActionContext } from "@/app/providers/clientProvider/context";
 import { ClientProvider } from "@/app/providers/clientProvider";
 import AddClientModal from "../../components/modals/addClientModal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
+import { useAIChat } from "@/app/hooks/useAIChat";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 
@@ -24,6 +26,11 @@ const { confirm } = Modal;
 function ClientsContent() {
   const { styles } = useStyles();
   
+  // AI Chat
+  const { isChatOpen, chatContext, openChat, closeChat, updateChatContext } = useAIChat({ 
+    pageTitle: 'Clients' 
+  });
+
   // Consuming contexts modeled after the Machine pattern
   const { clients, totalCount, isPending, filters } = useContext(ClientStateContext);
   const actions = useContext(ClientActionContext);
@@ -35,6 +42,24 @@ function ClientsContent() {
   useEffect(() => {
     actions?.getClients(filters);
   }, [filters, actions]);
+
+  // Update chat context with clients data
+  useEffect(() => {
+    if (!clients) return;
+    updateChatContext({
+      totalClients: totalCount,
+      displayedClients: clients.length,
+      clients: clients.map(client => ({
+        id: client.id,
+        name: client.name,
+        industry: client.industry,
+      })),
+      filters: {
+        searchTerm: filters.searchTerm,
+        pageNumber: filters.pageNumber,
+      },
+    });
+  }, [clients, totalCount, filters, updateChatContext]);
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     actions?.updateFilters?.({ searchTerm: value, pageNumber: 1 });
@@ -136,17 +161,23 @@ function ClientsContent() {
           <Text style={{ color: '#595959', letterSpacing: '2px', fontSize: '12px' }}>CRM / RELATIONSHIPS</Text>
           <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>CLIENTS</Title>
         </header>
-        <Can perform="CREATE_CLIENT">
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            size="large" 
-            className={styles.primaryButton}
-            onClick={() => setIsModalOpen(true)}
-          >
-            ADD NEW CLIENT
-          </Button>
-        </Can>
+        <div style={{ display: "flex", gap: 12 }}>
+          <ChatButton 
+            onClick={() => openChat(chatContext)}
+            title="Ask AI about clients"
+          />
+          <Can perform="CREATE_CLIENT">
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              size="large" 
+              className={styles.primaryButton}
+              onClick={() => setIsModalOpen(true)}
+            >
+              ADD NEW CLIENT
+            </Button>
+          </Can>
+        </div>
       </div>
 
       <div className={styles.filterSection}>
@@ -179,6 +210,15 @@ function ClientsContent() {
           onCancel={() => setIsModalOpen(false)} 
         />
       </Can>
+
+      {/* AI Chat Component */}
+      <AIChatComponent 
+        open={isChatOpen}
+        onClose={closeChat}
+        context={chatContext}
+        title="Clients AI Assistant"
+        pageTitle="Clients"
+      />
     </>
   );
 }
