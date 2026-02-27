@@ -25,8 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ConfigProvider 
           theme={{ 
             algorithm: theme.darkAlgorithm,
-            token: {
-              colorText: "#ffffff",
+            token: {              colorPrimary: "#595959",              colorText: "#ffffff",
               colorTextSecondary: "#a80808",
               colorTextTertiary: "#cbcaca",
               colorTextQuaternary: "#d9d5d5",

@@ -92,7 +92,7 @@ function ClientsContent() {
           icon={<GlobalOutlined />} 
           href={url} 
           target="_blank" 
-          style={{ color: "#40a9ff", padding: 0 }}
+          style={{ color: "#b6b6b6", padding: 0 }}
         >
           Visit
         </Button>
@@ -142,7 +142,6 @@ function ClientsContent() {
         <Input
           placeholder="Search by company name or industry..."
           prefix={<SearchOutlined style={{ color: '#595959' }} />}
-          className={styles.searchInput}
           value={filters.searchTerm}
           onChange={(e) => {
             // Update global filters via action

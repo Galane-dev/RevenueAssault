@@ -1,41 +1,63 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Revenue Assault
 
-## Getting Started
+## What is Revenue Assault?
 
-First, run the development server:
+Revenue Assault is a high-performance Opportunity Management and CRM platform designed to streamline the sales pipeline. It enables sales teams to manage client relationships, track deal progress through custom stages, manage activity notes, and monitor estimated revenue—all within a secure, role-based environment.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Why Choose Revenue Assault?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Revenue Assault prioritizes operational speed and data integrity. By utilizing a robust local-first state management architecture backed by centralized API synchronization, it ensures that Sales Managers and Representatives can manage high-volume pipelines without friction. With granular permission controls (RBAC), your sensitive deal data is protected and visible only to authorized personnel.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Documentation
 
-## Learn More
+## Software Requirement Specification
 
-To learn more about Next.js, take a look at the following resources:
+### Overview
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Revenue Assault provides a comprehensive interface for the modern sales cycle. Users can manage the entire lifecycle of an opportunity from Lead Discovery to final Closing (Won/Lost), maintaining a complete audit trail of activity through integrated notes and stage history.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Components and Functional Requirements
 
-## Deploy on Vercel
+**1. Opportunity & Pipeline Management**
+* **Deal Tracking:** Create and monitor opportunities with metadata including estimated value, currency, and probability.
+* **Stage Workflow:** Transition deals through a 6-stage pipeline (Discovery, Qualification, Proposal, Negotiation, Won, Lost).
+* **Smart Filtering:** Filter opportunities by sales stage, search terms, and client specific data.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**2. Authentication and Role-Based Access (RBAC)**
+* **Role Management:** Support for Admin, SalesManager, BDM, and SalesRep roles.
+* **Permission Guarding:** Actions like deleting opportunities or assigning reps are restricted to specific management roles.
+* **Unique Profiles:** Users access data relevant to their assigned accounts and regions.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# RevenueAssault
-CRM Dashboard
->>>>>>> f05e85c0469e76cb72de1585990e2d25e60d99b2
+**3. Activity & Note Subsystem**
+* **Unified Notes:** Attach activity logs and messages directly to opportunities or clients.
+* **Real-time Updates:** View and send updates in real-time to ensure team-wide alignment on deal status.
+* **Audit Trail:** Automatic logging of stage changes and loss reasons.
+
+---
+
+# Design
+
+## [UI Design](https://www.figma.com/design/97l0hfe6ogeRn0mjbfe4Gy/Untitled?node-id=0-1&m=dev&t=j02J3MH5C7mYCmF1-1)
+
+The interface utilizes a "Dark Mode" aesthetic powered by Ant Design, optimized for long-form data entry and dashboard monitoring.
+
+---
+
+# Running Application
+
+## FRONTEND
+1. Clone the repository and navigate to the project folder.
+2. Install dependencies: `npm install`
+3. Start the development server: `npm run dev`
+4. Access the application at `http://localhost:3000`
+
+## Development
+* Ensure the `.env` file is configured with the correct `NEXT_PUBLIC_API_URL`.
+* Uses **React Context API** and **Redux-Actions** for state management.
+* Styled using **Ant Design ConfigProvider** for custom branding.
+
+## Production
+The production build is optimized for performance and type safety.
+Visit: [galane-dev.github.io/RevenueAssault/](https://galane-dev.github.io/RevenueAssault/)
