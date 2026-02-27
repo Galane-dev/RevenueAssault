@@ -50,7 +50,6 @@ export default function SideNav() {
     { key: "/dashboard/pricing", icon: <DollarOutlined />, label: "Pricing" },
     { key: "/dashboard/activities", icon: <CalendarOutlined />, label: "Activities" },
     { key: "/dashboard/documents", icon: <FolderOpenOutlined />, label: "Documents" },
-    { key: "/dashboard/reports", icon: <BarChartOutlined />, label: "Reports" },
   ];
 
   return (

@@ -15,7 +15,7 @@ export default function Navbar() {
       </Link>
       <div className={styles.navLinks}>
         <Link 
-          href="/about" 
+          href="https://github.com/Galane-dev/RevenueAssault" 
           style={{ color: pathname === "/about" ? "white" : "#999" }}
         >
           About
