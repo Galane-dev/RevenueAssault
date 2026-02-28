@@ -7,6 +7,7 @@ import {
     PlusOutlined, 
     DeleteOutlined,
     EyeOutlined,
+    MessageOutlined,
     FilePdfOutlined,
     CalendarOutlined,
     DollarOutlined,
@@ -19,6 +20,8 @@ import { useStyles } from "../style";
 // Providers
 import { ContractProvider, ContractStateContext, ContractActionContext } from "@/app/providers/contractProvider";
 import { ClientProvider } from "@/app/providers/clientProvider";
+import { NoteProvider } from "@/app/providers/noteProvider";
+import { EntityType } from "@/app/providers/noteProvider/context";
 
 // Components
 import CreateContractModal from "../../components/modals/createContractModal";
@@ -29,6 +32,7 @@ import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 import { ProposalProvider } from "@/app/providers/proposalProvider";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIContractsContext } from "@/app/providers/contractProvider/useAIContext";
+import { NoteSection } from "@/app/components/notes/notes";
 
 const { Title, Text } = Typography;
 
@@ -181,6 +185,12 @@ function ContractsContent() {
                     </Text>
                 );
             },
+        },
+        {
+            title: "NOTES",
+            key: "notes",
+            align: 'center' as const,
+            render: () => <MessageOutlined style={{ color: '#595959' }} />
         },
         {
             title: "ACTIONS",
@@ -409,6 +419,13 @@ function ContractsContent() {
                             </Text>
                         </div>
 
+                        <Divider style={{ borderColor: '#303030' }} />
+                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
+                        <NoteSection
+                            type={EntityType.Task}
+                            id={selectedContract.id}
+                        />
+
                         {selectedContract.status === 2 && (
                             <Can perform="RENEW_CONTRACT">
                                 <Divider style={{ borderColor: '#303030' }} />
@@ -462,7 +479,9 @@ export default withAuth(function ContractsPage() {
             <OpportunityProvider>
                 <ProposalProvider>
                     <ContractProvider>
-                        <ContractsContent />
+                        <NoteProvider>
+                            <ContractsContent />
+                        </NoteProvider>
                     </ContractProvider>
                 </ProposalProvider>
                 

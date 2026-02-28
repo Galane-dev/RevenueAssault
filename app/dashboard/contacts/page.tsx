@@ -2,8 +2,8 @@
 
 import React, { useEffect, useContext, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip, message } from "antd";
-import { PlusOutlined, SearchOutlined, UserOutlined, StarFilled, MailOutlined, PhoneOutlined, StarOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Typography, Tag, Button, Input, Select, Space, Avatar, Tooltip, message, Drawer, Divider } from "antd";
+import { PlusOutlined, SearchOutlined, UserOutlined, MailOutlined, PhoneOutlined, StarOutlined, DeleteOutlined, MessageOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
 import { ContactProvider, ContactStateContext, ContactActionContext } from "@/app/providers/contactProvider";
@@ -14,6 +14,9 @@ import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIContactsContext } from "@/app/providers/contactProvider/useAIContext";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { NoteProvider } from "@/app/providers/noteProvider";
+import { EntityType } from "@/app/providers/noteProvider/context";
+import { NoteSection } from "@/app/components/notes/notes";
 
 const { Title, Text } = Typography;
 
@@ -31,6 +34,8 @@ function ContactsContent() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchInput, setSearchInput] = useState("");
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [selectedContact, setSelectedContact] = useState<any | null>(null);
 
     useEffect(() => {
         contactActions?.getContacts(filters);
@@ -61,6 +66,11 @@ function ContactsContent() {
                 message.error("Failed to delete contact");
             }
         }
+    };
+
+    const handleRowClick = (record: any) => {
+        setSelectedContact(record);
+        setIsDrawerOpen(true);
     };
 
     const columns = [
@@ -122,11 +132,17 @@ function ContactsContent() {
             )
         },
         {
+            title: "NOTES",
+            key: "notes",
+            align: 'center' as const,
+            render: () => <MessageOutlined style={{ color: '#595959' }} />
+        },
+        {
             title: "ACTIONS",
             key: "actions",
             align: 'right' as const,
             render: (record: any) => (
-                <Space>
+                <Space onClick={(e) => e.stopPropagation()}>
                     <Button 
                         type="text" 
                         disabled={record.isPrimaryContact}
@@ -206,6 +222,9 @@ function ContactsContent() {
                 loading={isPending}
                 rowKey="id"
                 className={styles.customTable}
+                onRow={(record) => ({
+                    onClick: () => handleRowClick(record),
+                })}
                 pagination={{
                     total: totalCount,
                     current: filters.pageNumber,
@@ -214,6 +233,51 @@ function ContactsContent() {
                     onChange: (page) => contactActions?.updateFilters({ pageNumber: page })
                 }}
             />
+
+            <Drawer
+                title={
+                    <div>
+                        <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>CONTACT DETAILS</Text>
+                        <Title level={4} style={{ margin: 0, color: '#fff' }}>
+                            {selectedContact ? `${selectedContact.firstName} ${selectedContact.lastName}` : ''}
+                        </Title>
+                    </div>
+                }
+                placement="right"
+                width={500}
+                onClose={() => {
+                    setIsDrawerOpen(false);
+                    setSelectedContact(null);
+                }}
+                open={isDrawerOpen}
+                styles={{
+                    body: { background: '#141414', padding: '24px' },
+                    header: { background: '#141414', borderBottom: '1px solid #303030' }
+                }}
+            >
+                {selectedContact && (
+                    <>
+                        <div style={{ marginBottom: 24 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <Text type="secondary">Email: </Text>
+                                    <Text style={{ color: '#d9d9d9' }}>{selectedContact.email}</Text>
+                                </div>
+                                {selectedContact.isPrimaryContact && (
+                                    <Tag color="#21c718" style={{ backgroundColor: "#00cc0b62" }}>PRIMARY</Tag>
+                                )}
+                            </div>
+                            <Divider style={{ borderColor: '#303030' }} />
+                        </div>
+
+                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
+                        <NoteSection
+                            type={EntityType.Lead}
+                            id={selectedContact.id}
+                        />
+                    </>
+                )}
+            </Drawer>
 
             <Can perform="CREATE_CONTACT">
                 <AddContactModal 
@@ -238,7 +302,9 @@ export default withAuth(function ContactsPage() {
     return (
         <ClientProvider>
             <ContactProvider>
-                <ContactsContent />
+                <NoteProvider>
+                    <ContactsContent />
+                </NoteProvider>
             </ContactProvider>
         </ClientProvider>
     );

@@ -2,17 +2,17 @@
 
 import React, { useEffect, useState, useContext } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { Table, Input, Tag, Space, Button, Typography, message, Modal } from "antd";
+import { Table, Input, Tag, Space, Button, Typography, message, Modal, Drawer, Divider } from "antd";
 import { 
   SearchOutlined, 
   PlusOutlined, 
   GlobalOutlined, 
-  EditOutlined, 
   DeleteOutlined,
-  ExclamationCircleOutlined 
+  ExclamationCircleOutlined,
+  MessageOutlined
 } from "@ant-design/icons";
 import { useStyles } from "../style";
-import { ClientStateContext, ClientActionContext } from "@/app/providers/clientProvider/context";
+import { ClientStateContext, ClientActionContext, IClient } from "@/app/providers/clientProvider/context";
 import { ClientProvider } from "@/app/providers/clientProvider";
 import AddClientModal from "../../components/modals/addClientModal";
 import { AIChatComponent, ChatButton } from "../../components/ai";
@@ -20,6 +20,9 @@ import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIClientsContext } from "@/app/providers/clientProvider/useAIContext";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { NoteProvider } from "@/app/providers/noteProvider";
+import { EntityType } from "@/app/providers/noteProvider/context";
+import { NoteSection } from "@/app/components/notes/notes";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -39,6 +42,8 @@ function ClientsContent() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<IClient | null>(null);
 
   // Trigger fetch whenever global filters change
   useEffect(() => {
@@ -68,6 +73,11 @@ function ClientsContent() {
         message.success("Client deleted");
       },
     });
+  };
+
+  const handleRowClick = (record: IClient) => {
+    setSelectedClient(record);
+    setIsDrawerOpen(true);
   };
 
   const columns = [
@@ -120,11 +130,17 @@ function ClientsContent() {
       ),
     },
     {
+      title: "NOTES",
+      key: "notes",
+      align: 'center' as const,
+      render: () => <MessageOutlined style={{ color: '#595959' }} />,
+    },
+    {
       title: "ACTIONS",
       key: "actions",
       align: 'right' as const,
-      render: (_: any, record: any) => (
-        <Space size="middle">
+      render: (_: unknown, record: IClient) => (
+        <Space size="middle" onClick={(e) => e.stopPropagation()}>
           <Can perform="DELETE_CLIENT">
             <Button 
               type="text" 
@@ -179,6 +195,9 @@ function ClientsContent() {
         dataSource={clients}
         rowKey="id"
         loading={isPending}
+        onRow={(record) => ({
+          onClick: () => handleRowClick(record),
+        })}
         pagination={{
           total: totalCount,
           current: filters.pageNumber,
@@ -187,6 +206,49 @@ function ClientsContent() {
           position: ['bottomRight'],
         }}
       />
+
+      <Drawer
+        title={
+          <div>
+            <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>CLIENT DETAILS</Text>
+            <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedClient?.name}</Title>
+          </div>
+        }
+        placement="right"
+        width={500}
+        onClose={() => {
+          setIsDrawerOpen(false);
+          setSelectedClient(null);
+        }}
+        open={isDrawerOpen}
+        styles={{
+          body: { background: '#141414', padding: '24px' },
+          header: { background: '#141414', borderBottom: '1px solid #303030' }
+        }}
+      >
+        {selectedClient && (
+          <>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <Text type="secondary">Industry: </Text>
+                  <Tag color="cyan">{selectedClient.industry || 'N/A'}</Tag>
+                </div>
+                <Tag color={selectedClient.isActive ? 'success' : 'error'}>
+                  {selectedClient.isActive ? 'ACTIVE' : 'INACTIVE'}
+                </Tag>
+              </div>
+              <Divider style={{ borderColor: '#303030' }} />
+            </div>
+
+            <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
+            <NoteSection
+              type={EntityType.Account}
+              id={selectedClient.id}
+            />
+          </>
+        )}
+      </Drawer>
 
       <Can perform="CREATE_CLIENT">
         <AddClientModal 
@@ -211,7 +273,9 @@ function ClientsContent() {
 export default withAuth(function ClientsPage() {
   return (
     <ClientProvider>
-      <ClientsContent />
+      <NoteProvider>
+        <ClientsContent />
+      </NoteProvider>
     </ClientProvider>
   );
 });

@@ -430,9 +430,7 @@ function DashboardOverview() {
           onFinish={onInviteSubmit}
           initialValues={{ role: "SalesRep" }}
         >
-          <Form.Item label="Tenant ID">
-            <Input value={currentTenantId} disabled />
-          </Form.Item>
+          
           <Form.Item
             name="email"
             label="Invitee Email"
