@@ -9,11 +9,20 @@ import { useAuthActions, useAuthState } from "../providers/authProvider";
 
 type RegScenario = "new" | "join" | "default";
 type InviteRole = "SalesRep" | "SalesManager" | "BusinessDevelopmentManager";
+type StoredInviteRole = InviteRole | null;
 
 const INVITE_ROLES: InviteRole[] = ["SalesRep", "SalesManager", "BusinessDevelopmentManager"];
+const INVITE_TENANT_ID_KEY = "inviteTenantId";
+const INVITE_ROLE_KEY = "inviteRole";
 
 const isInviteRole = (role: string | null): role is InviteRole => {
   return !!role && INVITE_ROLES.includes(role as InviteRole);
+};
+
+const getStoredInviteRole = (): StoredInviteRole => {
+  if (typeof window === "undefined") return null;
+  const storedRole = sessionStorage.getItem(INVITE_ROLE_KEY);
+  return isInviteRole(storedRole) ? storedRole : null;
 };
 
 export default function AuthPage() {
@@ -22,11 +31,16 @@ export default function AuthPage() {
   const searchParams = useSearchParams();
   const [form] = Form.useForm();
 
-  const invitedTenantId = searchParams.get("tenantId");
-  const invitedRole = useMemo<InviteRole>(() => {
+  const tenantIdFromUrl = searchParams.get("tenantId");
+  const roleFromUrl = useMemo<InviteRole>(() => {
     const roleParam = searchParams.get("role");
     return isInviteRole(roleParam) ? roleParam : "SalesRep";
   }, [searchParams]);
+  const invitedTenantId = tenantIdFromUrl || (typeof window !== "undefined" ? sessionStorage.getItem(INVITE_TENANT_ID_KEY) : null);
+  const invitedRole = isInviteRole(searchParams.get("role"))
+    ? roleFromUrl
+    : getStoredInviteRole() || "SalesRep";
+
   const requestedView = searchParams.get("view");
   const shouldOpenRegister = requestedView === "register" || !!invitedTenantId;
 
@@ -37,9 +51,28 @@ export default function AuthPage() {
   const { login, register } = useAuthActions();
   const { isPending, isError, isAuthenticated } = useAuthState();
 
+  useEffect(() => {
+    if (!tenantIdFromUrl || typeof window === "undefined") return;
+
+    sessionStorage.setItem(INVITE_TENANT_ID_KEY, tenantIdFromUrl);
+    sessionStorage.setItem(INVITE_ROLE_KEY, roleFromUrl);
+
+    const cleanParams = new URLSearchParams(searchParams.toString());
+    cleanParams.delete("tenantId");
+    cleanParams.delete("role");
+    cleanParams.set("view", "register");
+
+    const cleanQuery = cleanParams.toString();
+    router.replace(cleanQuery ? `/auth?${cleanQuery}` : "/auth?view=register");
+  }, [tenantIdFromUrl, roleFromUrl, searchParams, router]);
+
   // 1. Success Redirect
   useEffect(() => {
     if (isAuthenticated) {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(INVITE_TENANT_ID_KEY);
+        sessionStorage.removeItem(INVITE_ROLE_KEY);
+      }
       message.success(view === "login" ? "Welcome back!" : "Account created successfully!");
       router.push("/dashboard");
     }
@@ -89,7 +122,6 @@ export default function AuthPage() {
 
     if (nextView === "register" && invitedTenantId) {
       setRegScenario("join");
-      form.setFieldsValue({ tenantId: invitedTenantId, role: invitedRole });
     }
   };
 
@@ -134,11 +166,8 @@ export default function AuthPage() {
                     <Alert
                       type="info"
                       message="You've been invited to join an organisation"
-                      style={{ paddingLeft:27 ,marginBottom: 12, backgroundColor: '#29dd6b29', borderColor: '#16c10a', color: '#09ba0f' }}
+                      style={{ paddingLeft:25, marginBottom: 12, backgroundColor: '#35c5004e', borderColor: '#089903', color: '#28fc11' }}
                     />
-                    <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ORGANISATION TENANT</span>}>
-                      <Input value={invitedTenantId} disabled />
-                    </Form.Item>
                     <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ASSIGNED ROLE</span>}>
                       <Input value={invitedRole} disabled />
                     </Form.Item>

@@ -3,7 +3,7 @@
 import React, { useEffect, useContext, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid, message, Modal, Form } from "antd";
-import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined, AppstoreOutlined, UnorderedListOutlined } from "@ant-design/icons";
+import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined, AppstoreOutlined, UnorderedListOutlined, DownloadOutlined } from "@ant-design/icons";
 import { useStyles } from "../style";
 
 // Providers
@@ -22,6 +22,7 @@ import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIOpportunitiesContext } from "@/app/providers/opportunitiesProvider/useAIContext";
+import { exportToCsv } from "@/app/utils/csvExport";
 
 const { Title, Text } = Typography;
 
@@ -117,6 +118,42 @@ function OpportunitiesContent() {
         setPendingMove(null);
         setMoveReason("");
         setDraggedOpp(null);
+    };
+
+    const handleExportOpportunities = () => {
+        if (!opportunities || opportunities.length === 0) {
+            message.info("There are no opportunities to export.");
+            return;
+        }
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        exportToCsv({
+            filename: `opportunities-${timestamp}.csv`,
+            headers: [
+                "ID",
+                "Opportunity",
+                "Client",
+                "Estimated Value",
+                "Currency",
+                "Stage",
+                "Probability",
+                "Expected Close Date",
+                "Owner ID",
+            ],
+            rows: opportunities.map((opp) => [
+                opp.id,
+                opp.title || "Untitled Deal",
+                opp.clientName || opp.clientId,
+                opp.estimatedValue || 0,
+                opp.currency || "ZAR",
+                STAGES[Number(opp.stage)]?.label || "UNKNOWN",
+                `${opp.probability || 0}%`,
+                opp.expectedCloseDate ? new Date(opp.expectedCloseDate).toLocaleString() : "",
+                opp.ownerId,
+            ]),
+        });
+
+        message.success("Opportunities exported successfully.");
     };
 
     const columns = [
@@ -226,6 +263,14 @@ function OpportunitiesContent() {
                         onClick={() => openChat(aiContext)}
                         title="Ask AI about opportunities"
                     />
+
+                    <Button
+                        icon={<DownloadOutlined />}
+                        size="large"
+                        onClick={handleExportOpportunities}
+                    >
+                        EXPORT CSV
+                    </Button>
 
                     {/* Wrap Creation Button: BDM and above can create opportunities */}
                     <Can perform="CREATE_OPPORTUNITY"> 

@@ -12,6 +12,7 @@ import {
     ClockCircleOutlined,
     CheckCircleOutlined,
     DeleteOutlined,
+    DownloadOutlined,
 } from "@ant-design/icons";
 import { useStyles } from "../style";
 import dayjs from "dayjs";
@@ -32,6 +33,7 @@ import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIActivitiesContext } from "@/app/providers/activityProvider/useAIContext";
+import { exportToCsv } from "@/app/utils/csvExport";
 
 dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
@@ -101,6 +103,54 @@ function ActivityFeedContent() {
                 message.error("Failed to delete activity");
             }
         }
+    };
+
+    const handleExportActivities = () => {
+        if (!activities || activities.length === 0) {
+            message.info("There are no activities to export.");
+            return;
+        }
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        exportToCsv({
+            filename: `activities-${timestamp}.csv`,
+            headers: [
+                "ID",
+                "Type",
+                "Subject",
+                "Description",
+                "Due Date",
+                "Priority",
+                "Status",
+                "Assigned To",
+                "Related Type",
+                "Related ID",
+                "Duration (mins)",
+                "Location",
+                "Outcome",
+            ],
+            rows: activities.map((activity) => [
+                activity.id,
+                typeMap[activity.type]?.label || "Unknown",
+                activity.subject,
+                activity.description || "",
+                activity.dueDate ? dayjs(activity.dueDate).format("YYYY-MM-DD HH:mm") : "",
+                priorityMap[activity.priority]?.label || "Unknown",
+                activity.status === ActivityStatus.Completed
+                    ? "Completed"
+                    : activity.status === ActivityStatus.Cancelled
+                        ? "Cancelled"
+                        : "Scheduled",
+                activity.assignedToId,
+                activity.relatedToType,
+                activity.relatedToId,
+                activity.duration ?? "",
+                activity.location || "",
+                activity.outcome || "",
+            ]),
+        });
+
+        message.success("Activities exported successfully.");
     };
 
     const columns = [
@@ -226,6 +276,13 @@ function ActivityFeedContent() {
                         onClick={() => openChat(aiContext)}
                         title="Ask AI about activities"
                     />
+                    <Button
+                        icon={<DownloadOutlined />}
+                        size="large"
+                        onClick={handleExportActivities}
+                    >
+                        EXPORT CSV
+                    </Button>
                     <Can perform="CREATE_ACTIVITY">
                         <Button 
                             type="primary" 

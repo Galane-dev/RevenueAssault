@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Typography, Row, Col, Card, Table, Statistic, Empty, Spin, Progress, Space, Button, Modal, Form, Input, Select, message } from "antd";
 import { 
   LineChartOutlined, 
@@ -15,7 +15,7 @@ import {
 import { Line } from "@ant-design/plots";
 import { useStyles } from "../style";
 import { useDashboardActions, useDashboardState } from "../../providers/dashboardProvider";
-import { AIChatComponent, ChatButton } from "../../components/ai";
+import { AIChatComponent, AISummaryCard, ChatButton } from "../../components/ai";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIDashboardContext } from "@/app/providers/dashboardProvider/useAIContext";
 import { withAuth } from "../../hoc/withAuth";
@@ -24,8 +24,29 @@ import { useAuthState } from "@/app/providers/authProvider";
 const { Title, Text } = Typography;
 type InviteRole = "SalesRep" | "SalesManager" | "BusinessDevelopmentManager";
 
+interface OpportunityRow {
+  id: string;
+  clientName?: string;
+  stage?: number;
+  estimatedValue?: number;
+  probability?: number;
+  currency?: string;
+}
+
+interface MonthlyTrendPoint {
+  month?: number;
+  year?: number;
+  monthName?: string;
+  actual?: number;
+  projected?: number;
+}
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Could not send invitation.";
+
 function DashboardOverview() {
   const { styles } = useStyles();
+  const hasFetchedInitialData = useRef(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [inviteForm] = Form.useForm();
@@ -71,18 +92,24 @@ function DashboardOverview() {
       message.success("Invitation sent successfully.");
       inviteForm.resetFields();
       setInviteOpen(false);
-    } catch (error: any) {
-      message.error(error?.message || "Could not send invitation.");
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
     } finally {
       setIsSendingInvite(false);
     }
   };
 
   useEffect(() => {
+    if (hasFetchedInitialData.current) {
+      return;
+    }
+
+    hasFetchedInitialData.current = true;
+
     // Fetch live data on mount only
     getDashboardOverview();
     getRecentOpportunities();
-  }, []);
+  }, [getDashboardOverview, getRecentOpportunities]);
 
   const opportunityColumns = [
     {
@@ -104,7 +131,7 @@ function DashboardOverview() {
       title: "VALUE",
       dataIndex: "estimatedValue",
       key: "estimatedValue",
-      render: (val: number, record: any) => (
+      render: (val: number, record: OpportunityRow) => (
         <Text style={{ color: '#fff' }}>{record.currency || 'ZAR'} {val?.toLocaleString()}</Text>
       ),
     },
@@ -119,14 +146,14 @@ function DashboardOverview() {
   ];
 
   // Prepare revenue trend data with both actual and projected
-  const revenueTrendData = overview?.revenue?.monthlyTrend?.map((item: any) => ({
+  const revenueTrendData = (overview?.revenue?.monthlyTrend as MonthlyTrendPoint[] | undefined)?.map((item) => ({
     monthName: item.monthName || `${item.month}/${item.year}`,
     actual: item.actual || 0,
     projected: item.projected || 0
   })) || [];
 
   // Transform for line chart with multiple series
-  const chartData = revenueTrendData.flatMap((item: any) => [
+  const chartData = revenueTrendData.flatMap((item) => [
     { monthName: item.monthName, type: 'Actual', value: item.actual },
     { monthName: item.monthName, type: 'Projected', value: item.projected }
   ]);
@@ -158,6 +185,16 @@ function DashboardOverview() {
           />
         </Space>
       </header>
+
+      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <AISummaryCard
+            overview={overview}
+            recentOpportunities={recentOpportunities}
+            onAskAI={() => openChat(aiContext)}
+          />
+        </Col>
+      </Row>
 
       <Row gutter={[24, 24]}>
         {/* Win Rate - Large Box at Top (Majority Width) */}
