@@ -8,18 +8,95 @@ const rollUp = keyframes`
   100% { transform: translateY(0); }
 `;
 
+const drift = keyframes`
+  0% { transform: translate(-40px, -30px) scale(0.98) rotate(-0.6deg); }
+  100% { transform: translate(40px, 30px) scale(1.02) rotate(0.6deg); }
+`;
+
 export const useStyles = createStyles(({ css }) => ({
   landingWrapper: css`
     background-color: #000;
     min-height: 100vh;
     color: white;
-    background: url('https://img.freepik.com/premium-photo/wave-white-smoke-is-blowing-wind_994023-120187.jpg?semt=ais_user_personalization&w=740&q=80') no-repeat center center;
-    background-size: cover;
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
+    isolation: isolate;
     font-family: var(--font-monda);
+  `,
+
+  smokeContainer: css`
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: 0.7;
+    z-index: 0;
+    pointer-events: none;
+  `,
+
+  smokeSvg: css`
+    width: 100%;
+    height: 100%;
+    transform: translateZ(0);
+  `,
+
+  backgroundVeil: css`
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.05), transparent 45%),
+      linear-gradient(115deg, rgba(0, 0, 0, 0.72) 15%, rgba(0, 0, 0, 0.45) 55%, rgba(0, 0, 0, 0.75) 100%);
+  `,
+
+  smokePath: css`
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    animation: ${drift} 14s ease-in-out infinite alternate;
+    will-change: transform;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  `,
+
+  core: css`
+    stroke-opacity: 0.07;
+    stroke-width: 92px;
+  `,
+
+  bridge: css`
+    stroke-opacity: 0.14;
+    stroke-width: 34px;
+  `,
+
+  strand: css`
+    stroke-opacity: 0.28;
+    stroke-width: 8px;
+  `,
+
+  d1: css`
+    animation-duration: 16s;
+  `,
+
+  d2: css`
+    animation-duration: 20s;
+    animation-delay: -2s;
+  `,
+
+  d3: css`
+    animation-duration: 18s;
+    animation-delay: -4s;
+  `,
+
+  d4: css`
+    animation-duration: 22s;
+    animation-delay: -6s;
   `,
 
   navbar: css`
@@ -45,7 +122,9 @@ export const useStyles = createStyles(({ css }) => ({
     justify-content: center;
     padding: 0 60px;
     /* This pushes the content down from the center slightly */
-    margin-top: 80px; 
+    margin-top: 80px;
+    position: relative;
+    z-index: 2;
     font-family: var(--font-monda);
     letter-spacing: 1px;
   `,
@@ -78,11 +157,12 @@ export const useStyles = createStyles(({ css }) => ({
     text-transform: uppercase;
     margin: 0;
     letter-spacing: 10px;
+    text-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
   `,
 
   outline: css`
     color: transparent;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7);
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.85);
   `,
 
   solid: css`
@@ -92,11 +172,14 @@ export const useStyles = createStyles(({ css }) => ({
   descriptionWrapper: css`
     max-width: 500px;
     margin-top: 40px;
+    padding: 14px 18px;
     padding-left: 20px;
     border-left: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
     
     p {
-      color: #aaa;
+      color: #d2d2d2;
       font-size: 16px;
       line-height: 1.6;
       margin: 0;
@@ -106,7 +189,7 @@ export const useStyles = createStyles(({ css }) => ({
 
   ctaBtn: css`
     margin-top: 40px;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.35);
     border: 1px solid white;
     color: white;
     padding: 12px 35px;
@@ -128,7 +211,8 @@ export const useStyles = createStyles(({ css }) => ({
     position: absolute;
     bottom: 30px;
     right: 60px;
-    color: #666;
+    z-index: 2;
+    color: #9a9a9a;
     font-size: 14px;
     text-decoration: none;
     transition: color 0.3s;
