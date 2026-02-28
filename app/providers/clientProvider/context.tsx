@@ -46,7 +46,7 @@ export const INITIAL_STATE: IClientStateContext = {
         industry: "",
         isActive: null,
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 7
     }
 };
 

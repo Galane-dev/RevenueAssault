@@ -58,7 +58,7 @@ export const INITIAL_STATE: IPricingStateContext = {
     totalCount: 0,
     filters: {
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 7
     }
 };
 

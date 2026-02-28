@@ -52,7 +52,7 @@ export const INITIAL_STATE: IContractStateContext = {
         searchTerm: "",
         status: null,
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 7
     }
 };
 

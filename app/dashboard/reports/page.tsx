@@ -246,7 +246,7 @@ function SalesDashboardContent() {
                         <Table 
                             dataSource={opportunityReport} 
                             columns={columns} 
-                            pagination={{ pageSize: 6 }} 
+                            pagination={{ pageSize: 7 }} 
                             size="small" 
                             loading={isPending}
                             rowKey="id"
