@@ -19,6 +19,7 @@ import { AIChatComponent, ChatButton } from "../../components/ai";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIClientsContext } from "@/app/providers/clientProvider/useAIContext";
 import { Can } from "../../components/auth/can";
+import { useAuthState } from "@/app/providers/authProvider";
 import { withAuth } from "../../hoc/withAuth";
 import { NoteProvider } from "@/app/providers/noteProvider";
 import { EntityType } from "@/app/providers/noteProvider/context";
@@ -39,6 +40,7 @@ function ClientsContent() {
   // Consuming contexts modeled after the Machine pattern
   const { clients, totalCount, isPending, filters } = useContext(ClientStateContext);
   const actions = useContext(ClientActionContext);
+  const { user } = useAuthState();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -79,6 +81,8 @@ function ClientsContent() {
     setSelectedClient(record);
     setIsDrawerOpen(true);
   };
+
+  const isSalesRep = user?.roles?.includes("SalesRep");
 
   const columns = [
     {
@@ -135,7 +139,10 @@ function ClientsContent() {
       align: 'center' as const,
       render: () => <MessageOutlined style={{ color: '#595959' }} />,
     },
-    {
+  ];
+
+  if (!isSalesRep) {
+    columns.push({
       title: "ACTIONS",
       key: "actions",
       align: 'right' as const,
@@ -151,8 +158,8 @@ function ClientsContent() {
           </Can>
         </Space>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <>
