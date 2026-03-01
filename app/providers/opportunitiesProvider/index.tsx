@@ -47,7 +47,6 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
         },
 
         getStageHistory: async (id: string) => {
-            dispatch(setPending());
             try {
                 const response = await getAxiosInstance().get(`/api/opportunities/${id}/stage-history`);
                 // This might be stored differently - could return details

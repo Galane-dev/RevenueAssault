@@ -2,8 +2,15 @@
 
 import React, { useEffect, useContext, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { Table, Typography, Tag, Button, Input, Select, Space, Drawer, Divider, Popconfirm, Row, Col, Card, Grid, message, Modal, Form } from "antd";
-import { PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, DeleteOutlined, AppstoreOutlined, UnorderedListOutlined, DownloadOutlined } from "@ant-design/icons";
+import { 
+    Table, Typography, Tag, Button, Input, Select, Space, Drawer, 
+    Divider, Popconfirm, Grid, message, Modal, Form, Timeline, Spin, Card 
+} from "antd";
+import { 
+    PlusOutlined, SearchOutlined, EditOutlined, MessageOutlined, 
+    DeleteOutlined, AppstoreOutlined, UnorderedListOutlined, 
+    DownloadOutlined, UserOutlined, HistoryOutlined 
+} from "@ant-design/icons";
 import { useStyles } from "../style";
 
 // Providers
@@ -11,6 +18,7 @@ import { OpportunityProvider, OpportunityStateContext, OpportunityActionContext 
 import { ClientProvider } from "@/app/providers/clientProvider";
 import { NoteProvider } from "@/app/providers/noteProvider";
 import { EntityType } from "@/app/providers/noteProvider/context";
+import { UserProvider } from "@/app/providers/userProvider";
 
 // Components
 import CreateOpportunityModal from "../../components/modals/addOpportunityModal";
@@ -23,6 +31,7 @@ import { withAuth } from "../../hoc/withAuth";
 import { useAIChat } from "@/app/hooks/useAIChat";
 import { useAIOpportunitiesContext } from "@/app/providers/opportunitiesProvider/useAIContext";
 import { exportToCsv } from "@/app/utils/csvExport";
+import {TeamMemberSelect} from "@/app/components/modals/teamMembersModal";
 
 const { Title, Text } = Typography;
 
@@ -56,11 +65,20 @@ function OpportunitiesContent() {
     const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
     const [pendingMove, setPendingMove] = useState<{ oppId: string; stageNum: number; stageName: string } | null>(null);
     const [moveReason, setMoveReason] = useState("");
-    const [form] = Form.useForm();
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    
+    // Feature States
+    const [isMyOnly, setIsMyOnly] = useState(false);
+    const [stageHistory, setStageHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     useEffect(() => {
-        actions?.getOpportunities(filters);
-    }, [filters, actions]);
+        if (isMyOnly) {
+            actions?.getMyOpportunities();
+        } else {
+            actions?.getOpportunities(filters);
+        }
+    }, [filters, actions, isMyOnly]);
 
     const debouncedSearch = useDebouncedCallback((value: string) => {
         actions?.updateFilters({ searchTerm: value, pageNumber: 1 });
@@ -79,13 +97,21 @@ function OpportunitiesContent() {
     };
 
     const handleDeleteOpportunity = (id: string) => {
-      
+        // Implementation for delete
     };
 
- 
-    const handleRowClick = (record: IOpportunity) => {
+    const handleRowClick = async (record: IOpportunity) => {
         setSelectedOpp(record);
         setIsDrawerOpen(true);
+        setLoadingHistory(true);
+        try {
+            const history = await actions?.getStageHistory(record.id);
+            setStageHistory(history || []);
+        } catch (error) {
+            console.error("Failed to fetch history", error);
+        } finally {
+            setLoadingHistory(false);
+        }
     };
 
     const handleDragDrop = (oppId: string, stageNum: number, stageName: string) => {
@@ -130,22 +156,11 @@ function OpportunitiesContent() {
         exportToCsv({
             filename: `opportunities-${timestamp}.csv`,
             headers: [
-                "ID",
-                "Opportunity",
-                "Client",
-                "Estimated Value",
-                "Currency",
-                "Stage",
-                "Probability",
-                "Expected Close Date",
-                "Owner ID",
+                "ID", "Opportunity", "Client", "Estimated Value", "Currency", "Stage", "Probability", "Expected Close Date", "Owner ID",
             ],
             rows: opportunities.map((opp) => [
-                opp.id,
-                opp.title || "Untitled Deal",
-                opp.clientName || opp.clientId,
-                opp.estimatedValue || 0,
-                opp.currency || "ZAR",
+                opp.id, opp.title || "Untitled Deal", opp.clientName || opp.clientId,
+                opp.estimatedValue || 0, opp.currency || "ZAR",
                 STAGES[Number(opp.stage)]?.label || "UNKNOWN",
                 `${opp.probability || 0}%`,
                 opp.expectedCloseDate ? new Date(opp.expectedCloseDate).toLocaleString() : "",
@@ -189,9 +204,6 @@ function OpportunitiesContent() {
                         <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
                             {stageInfo.label}
                         </Tag>
-                        {/* NOTE: SalesRep can update 'assigned' opportunities. 
-                            If the API handles the 'assigned' check, we just check general role here.
-                        */}
                         <Button 
                             type="text" 
                             icon={<EditOutlined />} 
@@ -216,7 +228,6 @@ function OpportunitiesContent() {
                     <Can perform="DELETE_OPPORTUNITY">
                         <Popconfirm
                             title="Delete Opportunity"
-                            description="Are you sure you want to delete this deal?"
                             onConfirm={() => handleDeleteOpportunity(record.id)}
                             okText="Yes"
                             cancelText="No"
@@ -238,49 +249,27 @@ function OpportunitiesContent() {
                 </header>
                 
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    {/* View Toggle - Visible only on lg+ screens */}
+                    <Button 
+                        icon={<UserOutlined />} 
+                        type={isMyOnly ? "primary" : "default"}
+                        onClick={() => setIsMyOnly(!isMyOnly)}
+                    >
+                        {isMyOnly ? "ALL DEALS" : "MY DEALS"}
+                    </Button>
+
                     {screens.lg && (
                         <Button.Group>
-                            <Button 
-                                icon={<UnorderedListOutlined />}
-                                type={viewType === "list" ? "primary" : "default"}
-                                onClick={() => setViewType("list")}
-                            >
-                                List
-                            </Button>
-                            <Button 
-                                icon={<AppstoreOutlined />}
-                                type={viewType === "kanban" ? "primary" : "default"}
-                                onClick={() => setViewType("kanban")}
-                            >
-                                Kanban
-                            </Button>
+                            <Button icon={<UnorderedListOutlined />} type={viewType === "list" ? "primary" : "default"} onClick={() => setViewType("list")}>List</Button>
+                            <Button icon={<AppstoreOutlined />} type={viewType === "kanban" ? "primary" : "default"} onClick={() => setViewType("kanban")}>Kanban</Button>
                         </Button.Group>
                     )}
 
-                    {/* AI Chat Button */}
-                    <ChatButton 
-                        onClick={() => openChat(aiContext)}
-                        title="Ask AI about opportunities"
-                    />
+                    <ChatButton onClick={() => openChat(aiContext)} title="Ask AI" />
 
-                    <Button
-                        icon={<DownloadOutlined />}
-                        size="large"
-                        onClick={handleExportOpportunities}
-                    >
-                        EXPORT CSV
-                    </Button>
+                    <Button icon={<DownloadOutlined />} size="large" onClick={handleExportOpportunities}>EXPORT CSV</Button>
 
-                    {/* Wrap Creation Button: BDM and above can create opportunities */}
                     <Can perform="CREATE_OPPORTUNITY"> 
-                        <Button 
-                            type="primary" 
-                            icon={<PlusOutlined />} 
-                            className={styles.primaryButton} 
-                            size="large"
-                            onClick={() => setIsCreateModalOpen(true)}
-                        >
+                        <Button type="primary" icon={<PlusOutlined />} className={styles.primaryButton} size="large" onClick={() => setIsCreateModalOpen(true)}>
                             NEW OPPORTUNITY
                         </Button>
                     </Can>
@@ -288,169 +277,54 @@ function OpportunitiesContent() {
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 20, display: 'flex', gap: 12 }}>
-                <Input 
-                    placeholder="Search deals..." 
-                    style={{ width: 300 }}
-                    prefix={<SearchOutlined style={{ color: '#595959' }} />}
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                />
-                <Select 
-                    placeholder="Filter by Stage" 
-                    style={{ width: 200 }}
-                    allowClear
-                    onChange={(val) => actions?.updateFilters({ stage: val, pageNumber: 1 })}
-                >
+                <Input placeholder="Search deals..." style={{ width: 300 }} prefix={<SearchOutlined style={{ color: '#595959' }} />} value={searchInput} onChange={handleSearchChange} />
+                <Select placeholder="Filter by Stage" style={{ width: 200 }} allowClear onChange={(val) => actions?.updateFilters({ stage: val, pageNumber: 1 })}>
                     {Object.entries(STAGES).map(([key, value]) => (
                         <Select.Option key={key} value={Number(key)}>{value.label}</Select.Option>
                     ))}
                 </Select>
             </div>
 
-            {/* LIST VIEW */}
             {viewType === "list" && (
-                <Table 
-                    columns={columns} 
-                    dataSource={opportunities} 
-                    loading={isPending}
-                    rowKey="id"
-                    className={styles.customTable}
-                    onRow={(record) => ({
-                        onClick: () => handleRowClick(record),
-                    })}
+                <Table columns={columns} dataSource={opportunities} loading={isPending} rowKey="id" className={styles.customTable} onRow={(record) => ({ onClick: () => handleRowClick(record) })} 
                     pagination={{
-                        total: totalCount,
-                        current: filters.pageNumber,
-                        pageSize: filters.pageSize,
+                        total: totalCount, current: filters.pageNumber, pageSize: filters.pageSize,
                         onChange: (page) => actions?.updateFilters({ pageNumber: page })
-                    }}
+                    }} 
                 />
             )}
 
-            {/* KANBAN VIEW */}
             {viewType === "kanban" && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                     {Object.entries(STAGES).map(([stagKey, stageInfo]) => {
                         const stageNum = Number(stagKey);
                         const oppsByStage = (opportunities || []).filter(opp => opp.stage === stageNum);
-                        
                         return (
-                            <div 
-                                key={stagKey}
-                                style={{ 
-                                    background: '#1f1f1f', 
-                                    border: '1px solid #303030', 
-                                    borderRadius: 8, 
-                                    padding: 16,
-                                    minHeight: 400,
-                                    display: 'flex',
-                                    flexDirection: 'column'
-                                }}
-                            >
+                            <div key={stagKey} style={{ background: '#1f1f1f', border: '1px solid #303030', borderRadius: 8, padding: 16, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ marginBottom: 16 }}>
-                                    <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>
-                                        {stageInfo.label}
-                                    </Tag>
-                                    <Text style={{ color: '#8c8c8c', marginLeft: 8 }}>
-                                        {oppsByStage.length} deal{oppsByStage.length !== 1 ? 's' : ''}
-                                    </Text>
+                                    <Tag color={stageInfo.color} style={{ borderRadius: 2 }}>{stageInfo.label}</Tag>
+                                    <Text style={{ color: '#8c8c8c', marginLeft: 8 }}>{oppsByStage.length} deal{oppsByStage.length !== 1 ? 's' : ''}</Text>
                                 </div>
-
-                                <div 
-                                    style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}
-                                    onDragOver={(e) => {
-                                        e.preventDefault();
-                                        e.dataTransfer.dropEffect = 'move';
-                                    }}
+                                <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}
+                                    onDragOver={(e) => e.preventDefault()}
                                     onDrop={(e) => {
                                         e.preventDefault();
-                                        if (draggedOpp) {
-                                            handleDragDrop(draggedOpp.id, stageNum, stageInfo.label);
-                                            setDraggedOpp(null);
-                                        }
+                                        if (draggedOpp) { handleDragDrop(draggedOpp.id, stageNum, stageInfo.label); setDraggedOpp(null); }
                                     }}
                                 >
-                                    {oppsByStage.length > 0 ? (
-                                        oppsByStage.map((opp) => (
-                                            <div
-                                                key={opp.id}
-                                                draggable
-                                                onDragStart={(e) => {
-                                                    setDraggedOpp(opp);
-                                                    e.dataTransfer.effectAllowed = 'move';
-                                                    e.dataTransfer.setData('text/plain', opp.id);
-                                                }}
-                                                onDragEnd={() => setDraggedOpp(null)}
-                                                style={{
-                                                    opacity: draggedOpp?.id === opp.id ? 0.5 : 1,
-                                                    cursor: 'grab',
-                                                }}
-                                            >
-                                                <Card
-                                                    size="small"
-                                                    style={{ 
-                                                        background: '#141414', 
-                                                        border: draggedOpp?.id === opp.id ? '2px solid #52c41a' : '1px solid #303030',
-                                                        cursor: 'grab',
-                                                        transition: 'all 0.3s ease'
-                                                    }}
-                                                    hoverable
-                                                    onClick={() => handleRowClick(opp)}
-                                                >
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <Text strong style={{ color: '#fff', display: 'block', marginBottom: 4 }}>
-                                                            {opp.title || "Untitled Deal"}
-                                                        </Text>
-                                                        <Text style={{ color: '#52c41a', fontSize: '12px' }}>
-                                                            {opp.currency || "ZAR"} {(opp.estimatedValue || 0).toLocaleString()}
-                                                        </Text>
-                                                    </div>
-
-                                                    <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
-
-                                                    <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
-                                                        <Button 
-                                                            type="text" 
-                                                            size="small"
-                                                            icon={<EditOutlined />} 
-                                                            onClick={(e) => handleMoveClick(e, opp)}
-                                                            style={{ color: '#595959' }}
-                                                        >
-                                                            Move
-                                                        </Button>
-                                                        <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                                                            {opp.probability || 0}% prob
-                                                        </Text>
-                                                    </div>
-                                                </Card>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div 
-                                            style={{ 
-                                                color: '#595959', 
-                                                textAlign: 'center', 
-                                                padding: '16px 0', 
-                                                flex: 1,
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                justifyContent: 'center'
-                                            }}
-                                            onDragOver={(e) => {
-                                                e.preventDefault();
-                                                e.dataTransfer.dropEffect = 'move';
-                                            }}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                if (draggedOpp) {
-                                                    handleDragDrop(draggedOpp.id, stageNum, stageInfo.label);
-                                                    setDraggedOpp(null);
-                                                }
-                                            }}
-                                        >
-                                            No deals
+                                    {oppsByStage.map((opp) => (
+                                        <div key={opp.id} draggable onDragStart={(e) => { setDraggedOpp(opp); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDraggedOpp(null)} style={{ opacity: draggedOpp?.id === opp.id ? 0.5 : 1, cursor: 'grab' }}>
+                                            <Card size="small" style={{ background: '#141414', border: draggedOpp?.id === opp.id ? '2px solid #52c41a' : '1px solid #303030' }} hoverable onClick={() => handleRowClick(opp)}>
+                                                <Text strong style={{ color: '#fff', display: 'block' }}>{opp.title || "Untitled Deal"}</Text>
+                                                <Text style={{ color: '#52c41a', fontSize: '12px' }}>{opp.currency || "ZAR"} {(opp.estimatedValue || 0).toLocaleString()}</Text>
+                                                <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <Button type="text" size="small" icon={<EditOutlined />} onClick={(e) => handleMoveClick(e, opp)} style={{ color: '#595959' }}>Move</Button>
+                                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>{opp.probability || 0}%</Text>
+                                                </div>
+                                            </Card>
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                         );
@@ -465,110 +339,79 @@ function OpportunitiesContent() {
                         <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedOpp?.title}</Title>
                     </div>
                 }
-                placement="right"
-                width={500}
-                onClose={() => {
-                    setIsDrawerOpen(false);
-                    setSelectedOpp(null);
-                }}
-                open={isDrawerOpen}
-                styles={{ 
-                    body: { background: '#141414', padding: '24px' }, 
-                    header: { background: '#141414', borderBottom: '1px solid #303030' } 
-                }}
+                placement="right" width={500} onClose={() => { setIsDrawerOpen(false); setSelectedOpp(null); }} open={isDrawerOpen}
+                styles={{ body: { background: '#141414', padding: '24px' }, header: { background: '#141414', borderBottom: '1px solid #303030' } }}
             >
                 {selectedOpp && (
                     <>
-                        <div style={{ marginBottom: 24 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div>
-                                    <Text type="secondary">Status: </Text>
-                                    <Tag color={STAGES[Number(selectedOpp.stage)]?.color}>
-                                        {STAGES[Number(selectedOpp.stage)]?.label}
-                                    </Tag>
-                                </div>
-                                
-                                {/* Assign Action: Admin/SalesManager only */}
-                                <Can perform="ASSIGN_OPPORTUNITY">
-                                    <Button 
-                                        size="small" 
-                                        ghost
-                                        onClick={() => {
-                                            // Show a simple prompt for user ID or integrate with modal
-                                            const assignedToId = prompt("Enter user ID to assign:");
-                                            if (assignedToId) {
-                                                actions?.assignOpportunity(selectedOpp.id, assignedToId);
-                                            }
-                                        }}
-                                    >
-                                        Assign Rep
-                                    </Button>
-                                </Can>
-                            </div>
-                            <Divider style={{ borderColor: '#303030' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <Tag color={STAGES[Number(selectedOpp.stage)]?.color}>{STAGES[Number(selectedOpp.stage)]?.label}</Tag>
+                            <Can perform="ASSIGN_OPPORTUNITY">
+                                <Button className={styles.primaryButton} icon={<UserOutlined />} ghost onClick={() => {
+                                    setIsAssignModalOpen(true)}}>Assign Rep</Button>
+                            </Can>
                         </div>
                         
-                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
-                        <NoteSection 
-                            type={EntityType.Opportunity} 
-                            id={selectedOpp.id} 
-                        />
+                        <Divider style={{ borderColor: '#303030' }} />
+                        
+                        <Title level={5} style={{ color: '#8c8c8c' }}><HistoryOutlined /> STAGE HISTORY</Title>
+                        {loadingHistory ? <Spin size="small" /> : (
+                            <Timeline 
+                                style={{ marginTop: 16 }}
+                                items={stageHistory.map(h => ({
+                                    color: STAGES[h.stage]?.color,
+                                    children: (
+                                        <>
+                                            <Text strong style={{ color: '#fff' }}>{STAGES[h.stage]?.label}</Text>
+                                            <div style={{ color: '#8c8c8c', fontSize: '12px' }}>{h.reason || "Moved"} • {new Date(h.createdAt).toLocaleDateString()}</div>
+                                        </>
+                                    )
+                                }))}
+                            />
+                        )}
+                        
+                        <Divider style={{ borderColor: '#303030' }} />
+                        <Title level={5} style={{ color: '#8c8c8c' }}><MessageOutlined /> ACTIVITY NOTES</Title>
+                        <NoteSection type={EntityType.Opportunity} id={selectedOpp.id} />
                     </>
                 )}
             </Drawer>
 
-            <CreateOpportunityModal 
-                open={isCreateModalOpen} 
-                onCancel={() => setIsCreateModalOpen(false)} 
-            />
+            <CreateOpportunityModal open={isCreateModalOpen} onCancel={() => setIsCreateModalOpen(false)} />
+            <MoveStageModal opportunity={selectedOpp} open={isMoveModalOpen} onCancel={() => { setIsMoveModalOpen(false); setSelectedOpp(null); }} />
 
-            <MoveStageModal 
-                opportunity={selectedOpp}
-                open={isMoveModalOpen}
-                onCancel={() => {
-                    setIsMoveModalOpen(false);
-                    setSelectedOpp(null);
-                }}
-            />
-
-            {/* Move Reason Modal */}
-            <Modal
-                title="Move Opportunity"
-                open={isReasonModalOpen}
-                onOk={handleConfirmMove}
-                onCancel={handleCancelMove}
-                okText="Confirm Move"
-                cancelText="Cancel"
-            >
-                <div style={{ marginBottom: 16 }}>
-                    <Typography.Text style={{ color: '#8c8c8c', display: 'block', marginBottom: 8 }}>
-                        Moving <Typography.Text strong style={{ color: '#fff' }}>{draggedOpp?.title}</Typography.Text> to <Typography.Text strong style={{ color: '#52c41a' }}>{pendingMove?.stageName}</Typography.Text>
-                    </Typography.Text>
-                </div>
+            <Modal title="Move Opportunity" open={isReasonModalOpen} onOk={handleConfirmMove} onCancel={handleCancelMove} okText="Confirm Move">
                 <Form layout="vertical">
                     <Form.Item label="Reason for Move" required>
-                        <Input.TextArea 
-                            rows={4}
-                            placeholder="Enter reason for moving this opportunity (e.g., 'Customer approved proposal', 'Needs more information', etc.)"
-                            value={moveReason}
-                            onChange={(e) => setMoveReason(e.target.value)}
-                            maxLength={500}
-                        />
+                        <Input.TextArea rows={4} value={moveReason} onChange={(e) => setMoveReason(e.target.value)} maxLength={500} />
                     </Form.Item>
-                    <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-                        {moveReason.length}/500
-                    </Typography.Text>
                 </Form>
             </Modal>
 
-            {/* AI Chat Component */}
-            <AIChatComponent 
-                open={isChatOpen}
-                onClose={closeChat}
-                context={aiContext}
-                title="Opportunities AI Assistant"
-                pageTitle="Opportunities"
-            />
+            <AIChatComponent open={isChatOpen} onClose={closeChat} context={aiContext} title="Opportunities AI Assistant" pageTitle="Opportunities" />
+                <Modal 
+    title="Assign Opportunity" 
+    open={isAssignModalOpen} 
+    onCancel={() => setIsAssignModalOpen(false)}
+    footer={null}
+    destroyOnClose
+>
+    <div style={{ padding: '10px 0 20px 0' }}>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+            Search for a representative to assign to **{selectedOpp?.title}**.
+        </Text>
+        <TeamMemberSelect 
+            onSelect={(userId) => {
+                if (selectedOpp) {
+                    actions?.assignOpportunity(selectedOpp.id, userId);
+                    message.success("Rep assigned successfully");
+                }
+                setIsAssignModalOpen(false);
+            }} 
+        />
+    </div>
+</Modal>
+
         </>
     );
 }
@@ -576,11 +419,13 @@ function OpportunitiesContent() {
 export default withAuth(function OpportunitiesPage() {
     return (
        <ClientProvider>
-            <OpportunityProvider>
-                <NoteProvider>
-                    <OpportunitiesContent />
-                </NoteProvider>
-            </OpportunityProvider>
-       </ClientProvider> 
+            <UserProvider>
+                <OpportunityProvider>
+                    <NoteProvider>
+                        <OpportunitiesContent />
+                    </NoteProvider>
+                </OpportunityProvider>
+            </UserProvider>
+       </ClientProvider>
     );
 });
