@@ -67,7 +67,7 @@ function OpportunitiesContent() {
     const [pendingMove, setPendingMove] = useState<{ oppId: string; stageNum: number; stageName: string } | null>(null);
     const [moveReason, setMoveReason] = useState("");
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-    
+    const liveSelectedOpp = opportunities?.find(o => o.id === selectedOpp?.id) || selectedOpp;
     // Feature States
     const [isMyOnly, setIsMyOnly] = useState(false);
     const [stageHistory, setStageHistory] = useState<any[]>([]);
@@ -362,12 +362,12 @@ function OpportunitiesContent() {
                 title={
         <div>
             <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>OPPORTUNITY DETAILS</Text>
-            <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedOpp?.title}</Title>
-            {/* Displaying the Current Owner */}
+            {/* Use liveSelectedOpp here */}
+            <Title level={4} style={{ margin: 0, color: '#fff' }}>{liveSelectedOpp?.title}</Title>
             <div style={{ marginTop: 4 }}>
                 <UserOutlined style={{ color: '#8c8c8c', marginRight: 8 }} />
                 <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                    Assigned to: <span style={{ color: '#52c41a' }}>{getOwnerName(selectedOpp?.ownerId)}</span>
+                    Assigned to: <span style={{ color: '#52c41a' }}>{getOwnerName(liveSelectedOpp?.ownerId)}</span>
                 </Text>
             </div>
         </div>
