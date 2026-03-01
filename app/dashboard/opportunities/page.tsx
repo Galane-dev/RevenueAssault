@@ -112,8 +112,18 @@ function OpportunitiesContent() {
     return `Unknown (${ownerId})`;
 };
 
-    const handleDeleteOpportunity = (id: string) => {
-        // Implementation for delete
+    const handleDeleteOpportunity = async (id: string) => {
+        const hide = message.loading("Deleting opportunity...", 0);
+        try {
+            // Call the delete action from your OpportunityActionContext
+            await actions?.deleteOpportunity(id);
+            message.success("Opportunity deleted successfully");
+        } catch (error) {
+            console.error("Delete failed:", error);
+            message.error("Failed to delete opportunity. You may not have the required permissions.");
+        } finally {
+            hide();
+        }
     };
 
     const handleRowClick = async (record: IOpportunity) => {
