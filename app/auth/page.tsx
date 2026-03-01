@@ -6,6 +6,7 @@ import { Input, Button, Form, message, Row, Col, Radio, Select, Divider, Alert }
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStyles } from "./style";
 import { useAuthActions, useAuthState } from "../providers/authProvider";
+import { Suspense } from "react";
 
 type RegScenario = "new" | "join" | "default";
 type InviteRole = "SalesRep" | "SalesManager" | "BusinessDevelopmentManager";
@@ -25,7 +26,7 @@ const getStoredInviteRole = (): StoredInviteRole => {
   return isInviteRole(storedRole) ? storedRole : null;
 };
 
-export default function AuthContent() {
+function AuthContent() {
   const { styles } = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
