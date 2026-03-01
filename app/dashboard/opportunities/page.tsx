@@ -117,18 +117,19 @@ function OpportunitiesContent() {
     };
 
     const handleRowClick = async (record: IOpportunity) => {
-        setSelectedOpp(record);
-        setIsDrawerOpen(true);
-        setLoadingHistory(true);
-        try {
-            const history = await actions?.getStageHistory(record.id);
-            setStageHistory(history || []);
-        } catch (error) {
-            console.error("Failed to fetch history", error);
-        } finally {
-            setLoadingHistory(false);
-        }
-    };
+    setSelectedOpp(record);
+    setIsDrawerOpen(true);
+    setLoadingHistory(true);
+    try {
+        const history = await actions?.getStageHistory(record.id);
+        console.log("Stage History Raw Data:", history); // Check the keys here!
+        setStageHistory(history || []);
+    } catch (error) {
+        console.error("Failed to fetch history", error);
+    } finally {
+        setLoadingHistory(false);
+    }
+};
 
     const handleDragDrop = (oppId: string, stageNum: number, stageName: string) => {
         setPendingMove({ oppId, stageNum, stageName });
@@ -390,17 +391,42 @@ function OpportunitiesContent() {
                         <Title level={5} style={{ color: '#8c8c8c' }}><HistoryOutlined /> STAGE HISTORY</Title>
                         {loadingHistory ? <Spin size="small" /> : (
                             <Timeline 
-                                style={{ marginTop: 16 }}
-                                items={stageHistory.map(h => ({
-                                    color: STAGES[h.stage]?.color,
-                                    children: (
-                                        <>
-                                            <Text strong style={{ color: '#fff' }}>{STAGES[h.stage]?.label}</Text>
-                                            <div style={{ color: '#8c8c8c', fontSize: '12px' }}>{h.reason || "Moved"} • {new Date(h.createdAt).toLocaleDateString()}</div>
-                                        </>
-                                    )
-                                }))}
-                            />
+    style={{ marginTop: 16 }}
+    items={stageHistory.map(h => {
+        // 1. Get the Stage Info using the 'toStage' key from your JSON
+        // Your JSON uses toStage: 1, 2, 3, 5 etc.
+        const stageInfo = STAGES[h.toStage] || { label: h.toStageName || 'Unknown', color: 'gray' };
+        
+        // 2. Map 'changedAt' from your JSON to the date variable
+        const rawDate = h.changedAt; 
+        const formattedDate = rawDate ? new Date(rawDate).toLocaleString() : "Date Unknown";
+
+        return {
+            color: stageInfo.color,
+            children: (
+                <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Text strong style={{ color: '#fff', display: 'block' }}>
+                            {stageInfo.label}
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: '11px' }}>
+                            {h.changedByName} {/* Shows who moved it */}
+                        </Text>
+                    </div>
+                    
+                    {/* Display notes (from server) or a fallback */}
+                    <Text style={{ color: '#d9d9d9', display: 'block', fontSize: '13px' }}>
+                        {h.notes || "No notes provided"}
+                    </Text>
+                    
+                    <Text type="secondary" style={{ fontSize: '11px' }}>
+                        {formattedDate}
+                    </Text>
+                </div>
+            )
+        };
+    })}
+/>
                         )}
                         
                         <Divider style={{ borderColor: '#303030' }} />
