@@ -25,7 +25,7 @@ const getStoredInviteRole = (): StoredInviteRole => {
   return isInviteRole(storedRole) ? storedRole : null;
 };
 
-export default function AuthPage() {
+export default function AuthContent() {
   const { styles } = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -284,4 +284,12 @@ export default function AuthPage() {
       </main>
     </div>
   );
+}
+
+export default function AuthPage() {
+   return (
+      <Suspense fallback={<div>Loading...</div>}>
+         <AuthContent />
+      </Suspense>
+   );
 }
