@@ -3,9 +3,9 @@
 import React, { useReducer, useMemo, useCallback } from 'react';
 import { clientReducer } from './reducer';
 import { ClientStateContext, ClientActionContext, INITIAL_STATE } from './context';
-import { setPending, setClients, setError, setFilters } from './actions';
 import { getAxiosInstance } from '../../utils/axiosInstance';
-
+// Add setSelectedClientAction here!
+import { setPending, setClients, setError, setFilters, setSelectedClientAction } from './actions';
 export { ClientStateContext, ClientActionContext };
 
 export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -27,14 +27,15 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         // Fetches a single client by ID
         getClient: async (id: string) => {
-            dispatch(setPending());
-            try {
-                const response = await getAxiosInstance().get(`/api/clients/${id}`);
-                dispatch(setClients({ items: [response.data], totalCount: 1 }));
-            } catch (e) {
-                dispatch(setError());
-            }
-        },
+        dispatch(setPending());
+        try {
+            const response = await getAxiosInstance().get(`/api/clients/${id}`);
+            // Use the specific action so we don't overwrite the 'clients' array
+            dispatch(setSelectedClientAction({ client: response.data }));
+        } catch (e) {
+            dispatch(setError());
+        }
+    },
 
         // Fetches client statistics
         getClientStats: async (id: string) => {

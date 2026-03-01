@@ -6,6 +6,7 @@ export enum ClientActionEnums {
   SetClients = "SET_CLIENTS",
   SetFilters = "SET_FILTERS", // Ensure this exists in your Enum
   SetError = "SET_ERROR",
+  SetSelectedClient = "SET_SELECTED_CLIENT",
 }
 
 export const setPending = createAction<Partial<IClientStateContext>>(
@@ -21,6 +22,11 @@ export const setClients = createAction<Partial<IClientStateContext>, { items: IC
 export const setFilters = createAction<Partial<IClientStateContext>, { filters: any }>(
   ClientActionEnums.SetFilters,
   (payload) => ({ filters: payload.filters })
+);
+
+export const setSelectedClientAction = createAction<Partial<IClientStateContext>, { client: IClient }>(
+  ClientActionEnums.SetSelectedClient,
+  ({ client }) => ({ client })
 );
 
 export const setError = createAction<Partial<IClientStateContext>>(

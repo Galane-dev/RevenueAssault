@@ -16,6 +16,14 @@ export const clientReducer = handleActions<IClientStateContext, any>(
       isPending: false,
       isSuccess: true,
     }),
+
+    [ClientActionEnums.SetSelectedClient]: (state, action: Action<any>) => ({
+      ...state,
+      client: action.payload.client, // Updates the 'client' property specifically
+      isPending: false,
+      isSuccess: true,
+    }),
+    
     [ClientActionEnums.SetFilters]: (state, action: Action<any>) => ({
       ...state,
       // Ensure your context has a filters property if you use this, 

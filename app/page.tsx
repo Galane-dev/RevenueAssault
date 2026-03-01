@@ -76,9 +76,9 @@ export default function LandingPage() {
 
         <div className={styles.descriptionWrapper}>
           <p>
-            Connectivity powers our lives, strengthens communities and drives
-            progress. When everyone is connected, we can create a future full of
-            possibilities.
+            Control the pipeline. Eliminate blind spots. Execute with force. 
+            When every opportunity is monitored with ruthless precision, 
+            growth stops being hopeful and becomes engineered.
           </p>
         </div>
 
