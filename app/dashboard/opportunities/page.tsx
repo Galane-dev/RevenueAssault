@@ -19,6 +19,7 @@ import { ClientProvider } from "@/app/providers/clientProvider";
 import { NoteProvider } from "@/app/providers/noteProvider";
 import { EntityType } from "@/app/providers/noteProvider/context";
 import { UserProvider } from "@/app/providers/userProvider";
+import { UserStateContext } from "@/app/providers/userProvider/context";
 
 // Components
 import CreateOpportunityModal from "../../components/modals/addOpportunityModal";
@@ -49,7 +50,7 @@ function OpportunitiesContent() {
     const screens = Grid.useBreakpoint();
     const { opportunities, filters, totalCount, isPending } = useContext(OpportunityStateContext);
     const actions = useContext(OpportunityActionContext);
-
+    const { users } = useContext(UserStateContext);
     const { isChatOpen, openChat, closeChat } = useAIChat({ 
         pageTitle: 'Opportunities' 
     });
@@ -95,6 +96,21 @@ function OpportunitiesContent() {
         setSelectedOpp(record);
         setIsMoveModalOpen(true);
     };
+
+
+   const getOwnerName = (ownerId?: string | number) => {
+    if (!ownerId) return "Unassigned";
+
+    // Ensure we compare strings to strings to avoid "123" !== 123 issues
+    const owner = users?.find((u) => String(u.id) === String(ownerId));
+
+    if (owner) {
+        return owner.fullName || `${owner.firstName} ${owner.lastName}`;
+    }
+
+    // Fallback: If no user is found in the list, show the ID so you can debug it
+    return `Unknown (${ownerId})`;
+};
 
     const handleDeleteOpportunity = (id: string) => {
         // Implementation for delete
@@ -314,15 +330,25 @@ function OpportunitiesContent() {
                                 >
                                     {oppsByStage.map((opp) => (
                                         <div key={opp.id} draggable onDragStart={(e) => { setDraggedOpp(opp); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDraggedOpp(null)} style={{ opacity: draggedOpp?.id === opp.id ? 0.5 : 1, cursor: 'grab' }}>
-                                            <Card size="small" style={{ background: '#141414', border: draggedOpp?.id === opp.id ? '2px solid #52c41a' : '1px solid #303030' }} hoverable onClick={() => handleRowClick(opp)}>
-                                                <Text strong style={{ color: '#fff', display: 'block' }}>{opp.title || "Untitled Deal"}</Text>
-                                                <Text style={{ color: '#52c41a', fontSize: '12px' }}>{opp.currency || "ZAR"} {(opp.estimatedValue || 0).toLocaleString()}</Text>
-                                                <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
-                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <Button type="text" size="small" icon={<EditOutlined />} onClick={(e) => handleMoveClick(e, opp)} style={{ color: '#595959' }}>Move</Button>
-                                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>{opp.probability || 0}%</Text>
-                                                </div>
-                                            </Card>
+                                            <Card 
+    size="small" 
+    style={{ background: '#141414', border: '1px solid #303030' }} 
+    hoverable 
+    onClick={() => handleRowClick(opp)}
+>
+    <Text strong style={{ color: '#fff', display: 'block' }}>{opp.title}</Text>
+    <Text style={{ color: '#52c41a', fontSize: '12px' }}>{opp.currency} {opp.estimatedValue?.toLocaleString()}</Text>
+    
+    <Divider style={{ borderColor: '#303030', margin: '8px 0' }} />
+    
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Added the Owner Name here */}
+        <Text type="secondary" style={{ fontSize: '11px' }}>
+         {getOwnerName(opp.ownerId).split(' ')[0]} {/* Show first name only for space */}
+        </Text>
+        <Text style={{ color: '#8c8c8c', fontSize: '11px' }}>{opp.probability || 0}%</Text>
+    </div>
+</Card>
                                         </div>
                                     ))}
                                 </div>
@@ -334,11 +360,18 @@ function OpportunitiesContent() {
 
             <Drawer
                 title={
-                    <div>
-                        <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>OPPORTUNITY DETAILS</Text>
-                        <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedOpp?.title}</Title>
-                    </div>
-                }
+        <div>
+            <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>OPPORTUNITY DETAILS</Text>
+            <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedOpp?.title}</Title>
+            {/* Displaying the Current Owner */}
+            <div style={{ marginTop: 4 }}>
+                <UserOutlined style={{ color: '#8c8c8c', marginRight: 8 }} />
+                <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    Assigned to: <span style={{ color: '#52c41a' }}>{getOwnerName(selectedOpp?.ownerId)}</span>
+                </Text>
+            </div>
+        </div>
+    }
                 placement="right" width={500} onClose={() => { setIsDrawerOpen(false); setSelectedOpp(null); }} open={isDrawerOpen}
                 styles={{ body: { background: '#141414', padding: '24px' }, header: { background: '#141414', borderBottom: '1px solid #303030' } }}
             >
@@ -401,14 +434,14 @@ function OpportunitiesContent() {
             Search for a representative to assign to **{selectedOpp?.title}**.
         </Text>
         <TeamMemberSelect 
-            onSelect={(userId) => {
-                if (selectedOpp) {
-                    actions?.assignOpportunity(selectedOpp.id, userId);
-                    message.success("Rep assigned successfully");
-                }
-                setIsAssignModalOpen(false);
-            }} 
-        />
+    onSelect={(userId) => {
+        if (selectedOpp) {
+            // Ensure actions.assignOpportunity exists and is being called
+            actions?.assignOpportunity(selectedOpp.id, userId);
+        }
+        setIsAssignModalOpen(false);
+    }} 
+/>
     </div>
 </Modal>
 
