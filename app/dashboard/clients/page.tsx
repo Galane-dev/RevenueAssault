@@ -7,7 +7,8 @@ import {
   SearchOutlined, 
   PlusOutlined, 
   GlobalOutlined, 
-  DeleteOutlined,
+  
+  RollbackOutlined,
   ExclamationCircleOutlined,
   MessageOutlined,
   DollarOutlined,
@@ -127,9 +128,9 @@ function ClientsContent() {
       render: (_: unknown, record: IClient) => (
         <Space size="middle" onClick={(e) => e.stopPropagation()}>
           <Can perform="DELETE_CLIENT">
-            <Button type="text" danger icon={<DeleteOutlined />} onClick={() => {
+            <Button type="text" danger icon={<RollbackOutlined />} onClick={() => {
                 confirm({
-                    title: `Delete ${record.name}?`,
+                    title: `Change ${record.name} status`,
                     onOk: () => actions?.deleteClient(record.id)
                 });
             }} />
@@ -150,7 +151,7 @@ function ClientsContent() {
         <div style={{ display: "flex", gap: 12 }}>
           <ChatButton onClick={() => openChat(aiContext)} />
           <Can perform="CREATE_CLIENT">
-            <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => setIsModalOpen(true)}>ADD NEW CLIENT</Button>
+            <Button type="primary" icon={<PlusOutlined />} className={styles.primaryButton}  onClick={() => setIsModalOpen(true)}>ADD NEW CLIENT</Button>
           </Can>
         </div>
       </div>
@@ -196,7 +197,6 @@ function ClientsContent() {
                 <Title level={5} style={{ color: '#fff', margin: 0 }}>
                   <DollarOutlined /> ACTIVE OPPORTUNITIES
                 </Title>
-                <Button type="link" size="small">View All</Button>
               </div>
 
               {isOpsPending ? (

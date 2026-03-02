@@ -142,13 +142,17 @@ const useAISummaryStyles = createStyles(({ css }) => ({
     flex-wrap: wrap;
   `,
 
-  confidence: css`
+ confidence: css`
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    flex: 1;             /* Added: Allow this section to take up available space */
+    min-width: 250px;    /* Added: Prevent it from getting too small on mid-sized screens */
 
-    .ant-progress-outer {
-      width: 180px;
+    .ant-progress {
+      flex: 1;           /* Added: Let the progress component fill the middle */
+      max-width: 200px;  /* Optional: Cap the width so it doesn't get TOO long */
+      margin-bottom: 0;
     }
   `,
 
