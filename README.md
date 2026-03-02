@@ -60,4 +60,4 @@ The interface utilizes a "Dark Mode" aesthetic powered by Ant Design, optimized 
 
 ## Production
 The production build is optimized for performance and type safety.
-Visit: [galane-dev.github.io/RevenueAssault/](https://galane-dev.github.io/RevenueAssault/)
+Visit: [galane-dev.github.io/RevenueAssault/](https://revenue-assault.vercel.app/)

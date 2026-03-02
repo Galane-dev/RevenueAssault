@@ -6,6 +6,7 @@ import "./globals.css";
 import { AuthProvider } from "./providers/authProvider";
 import { usePathname } from "next/navigation";
 import { ConfigProvider, theme } from "antd";
+import { ChatProvider } from "./providers/chatProvider";
 
 const monda = Monda({
   subsets: ["latin"],
@@ -33,8 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         >
           <AuthProvider>
-            {!shouldHideNavbar && <Navbar />}
-            {children}
+            <ChatProvider>
+              {!shouldHideNavbar && <Navbar />}
+              {children}
+            </ChatProvider>
           </AuthProvider>
         </ConfigProvider>
           

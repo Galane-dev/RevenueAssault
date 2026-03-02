@@ -42,7 +42,7 @@ export const INITIAL_STATE: IContactStateContext = {
     filters: {
         searchTerm: "",
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 6
     }
 };
 

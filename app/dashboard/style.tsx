@@ -298,7 +298,7 @@ sider: css`
     border-radius: 4px !important;
     font-weight: 600;
     font-family: var(--font-monda);
-    height: 45px;
+    height: 35px;
     padding: 0 24px;
 
     &:hover {

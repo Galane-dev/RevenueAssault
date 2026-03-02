@@ -2,12 +2,11 @@
 
 import React, { useReducer, useMemo, useCallback } from 'react';
 import { opportunityReducer } from './reducer';
-// Import the contexts and the INITIAL_STATE
 import { OpportunityStateContext, OpportunityActionContext, INITIAL_STATE } from './context';
 import { setPending, setOpportunities, setError, setFilters } from './actions';
 import { getAxiosInstance } from '../../utils/axiosInstance';
+import { message } from 'antd';
 
-// EXPORT these so the page can see them
 export { OpportunityStateContext, OpportunityActionContext };
 
 export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -47,10 +46,8 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
         },
 
         getStageHistory: async (id: string) => {
-            dispatch(setPending());
             try {
                 const response = await getAxiosInstance().get(`/api/opportunities/${id}/stage-history`);
-                // This might be stored differently - could return details
                 return response.data;
             } catch (e) {
                 dispatch(setError());
@@ -61,7 +58,7 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
             dispatch(setPending());
             try {
                 await getAxiosInstance().post("/api/opportunities", values);
-                getOpportunities(state.filters);
+                await getOpportunities(state.filters);
             } catch (e) {
                 dispatch(setError());
                 throw e;
@@ -71,42 +68,49 @@ export const OpportunityProvider: React.FC<{ children: React.ReactNode }> = ({ c
         updateStage: async (id: string, stage: number, reason?: string) => {
             dispatch(setPending()); 
             try {
-                // The API expects: { newStage: int, notes: string, lossReason: string }
                 const payload = { 
                     stage: Number(stage), 
                     notes: reason || "Stage updated via pipeline",
-                    // If stage is 6 (LOST), we send the reason as lossReason, otherwise null
-                    lossReason: stage === 6 ? reason : "" 
+                    lossReason: stage === 6 ? reason : null 
                 };
 
-                console.log("Sending Updated Payload:", payload);
-
-                const response = await getAxiosInstance().put(`/api/opportunities/${id}/stage`, payload);
-                
-                console.log("Success Status:", response.status);
-
-                // Refresh the list to show the new stage
+                await getAxiosInstance().put(`/api/opportunities/${id}/stage`, payload);
                 await getOpportunities(state.filters);
             } catch (e: any) {
                 dispatch(setError());
-                if (e.response) {
-                    console.error("API Rejected Request:", e.response.data);
-                }
                 throw e;
             }
         },
+
         deleteOpportunity: async (id: string) => {
             try {
                 await getAxiosInstance().delete(`/api/opportunities/${id}`);
-                getOpportunities(state.filters);
-            } catch (e) { dispatch(setError()); }
+                await getOpportunities(state.filters);
+            } catch (e) { 
+                dispatch(setError()); 
+            }
         },
-        assignOpportunity: async (id: string, assignedToId: string) => {
+
+        /**
+         * Matches API Doc: POST /api/opportunities/{id}/assign
+         * Payload: { "userId": "..." }
+         */
+        assignOpportunity: async (id: string, userId: string) => {
+            dispatch(setPending());
             try {
-                await getAxiosInstance().post(`/api/opportunities/${id}/assign`, { assignedToId });
-                getOpportunities(state.filters);
-            } catch (e) { dispatch(setError()); }
+                await getAxiosInstance().post(`/api/opportunities/${id}/assign`, { 
+                    userId: userId 
+                });
+                
+                // Refresh the local list so the new owner name is reflected
+                await getOpportunities(state.filters);
+                message.success("Representative assigned successfully");
+            } catch (e) { 
+                dispatch(setError()); 
+                message.error("Failed to assign representative");
+            }
         },
+
         updateFilters: (newFilters: any) => {
             dispatch(setFilters({ filters: newFilters }));
         }

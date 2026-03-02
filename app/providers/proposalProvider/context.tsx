@@ -50,7 +50,7 @@ export const INITIAL_STATE: IProposalStateContext = {
     totalCount: 0,
     filters: {
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 8
     }
 };
 

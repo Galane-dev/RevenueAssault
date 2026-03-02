@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Typography, Row, Col, Card, Table, Statistic, Empty, Spin, Progress, Space } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { Typography, Row, Col, Card, Table, Statistic, Empty, Spin, Progress, Space, Button, Modal, Form, Input, Select, message } from "antd";
 import { 
   LineChartOutlined, 
-  TeamOutlined, 
   FileDoneOutlined,
   ArrowUpOutlined,
   LoadingOutlined,
@@ -16,23 +15,101 @@ import {
 import { Line } from "@ant-design/plots";
 import { useStyles } from "../style";
 import { useDashboardActions, useDashboardState } from "../../providers/dashboardProvider";
-import { Can } from "../../components/auth/can";
+import { AIChatComponent, AISummaryCard, ChatButton } from "../../components/ai";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIDashboardContext } from "@/app/providers/dashboardProvider/useAIContext";
 import { withAuth } from "../../hoc/withAuth";
+import { useAuthState } from "@/app/providers/authProvider";
 
 const { Title, Text } = Typography;
+type InviteRole = "SalesRep" | "SalesManager" | "BusinessDevelopmentManager";
+
+interface OpportunityRow {
+  id: string;
+  clientName?: string;
+  stage?: number;
+  estimatedValue?: number;
+  probability?: number;
+  currency?: string;
+}
+
+interface MonthlyTrendPoint {
+  month?: number;
+  year?: number;
+  monthName?: string;
+  actual?: number;
+  projected?: number;
+}
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Could not send invitation.";
 
 function DashboardOverview() {
   const { styles } = useStyles();
+  const hasFetchedInitialData = useRef(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inviteForm] = Form.useForm();
   
+  // AI Chat
+  const { isChatOpen, openChat, closeChat } = useAIChat({ 
+    pageTitle: 'Dashboard Overview' 
+  });
+  const aiContext = useAIDashboardContext();
+
   // Subscribe to Global Dashboard State
   const { overview, recentOpportunities, isPending } = useDashboardState();
   const { getDashboardOverview, getRecentOpportunities } = useDashboardActions();
+  const { user } = useAuthState();
+
+  const currentTenantId = user?.tenantId;
+
+  const onInviteSubmit = async (values: { email: string; role: InviteRole }) => {
+    if (!currentTenantId) {
+      message.error("Your tenant information is missing. Please login again.");
+      return;
+    }
+
+    try {
+      setIsSendingInvite(true);
+      const response = await fetch("/api/invitations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          role: values.role,
+          tenantId: currentTenantId,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to send invite");
+      }
+
+      message.success("Invitation sent successfully.");
+      inviteForm.resetFields();
+      setInviteOpen(false);
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
 
   useEffect(() => {
+    if (hasFetchedInitialData.current) {
+      return;
+    }
+
+    hasFetchedInitialData.current = true;
+
     // Fetch live data on mount only
     getDashboardOverview();
     getRecentOpportunities();
-  }, []);
+  }, [getDashboardOverview, getRecentOpportunities]);
 
   const opportunityColumns = [
     {
@@ -54,7 +131,7 @@ function DashboardOverview() {
       title: "VALUE",
       dataIndex: "estimatedValue",
       key: "estimatedValue",
-      render: (val: number, record: any) => (
+      render: (val: number, record: OpportunityRow) => (
         <Text style={{ color: '#fff' }}>{record.currency || 'ZAR'} {val?.toLocaleString()}</Text>
       ),
     },
@@ -69,14 +146,14 @@ function DashboardOverview() {
   ];
 
   // Prepare revenue trend data with both actual and projected
-  const revenueTrendData = overview?.revenue?.monthlyTrend?.map((item: any) => ({
+  const revenueTrendData = (overview?.revenue?.monthlyTrend as MonthlyTrendPoint[] | undefined)?.map((item) => ({
     monthName: item.monthName || `${item.month}/${item.year}`,
     actual: item.actual || 0,
     projected: item.projected || 0
   })) || [];
 
   // Transform for line chart with multiple series
-  const chartData = revenueTrendData.flatMap((item: any) => [
+  const chartData = revenueTrendData.flatMap((item) => [
     { monthName: item.monthName, type: 'Actual', value: item.actual },
     { monthName: item.monthName, type: 'Projected', value: item.projected }
   ]);
@@ -92,9 +169,32 @@ function DashboardOverview() {
 
   return (
     <>
-      <header className={styles.header}>
+      <header className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={2} className={styles.pageTitle}>DASHBOARD OVERVIEW</Title>
+        <Space>
+          <Button
+            type="primary"
+            className={styles.primaryButton}
+            onClick={() => setInviteOpen(true)}
+          >
+            Invite User
+          </Button>
+          <ChatButton
+            onClick={() => openChat(aiContext)}
+            title="Ask AI about dashboard"
+          />
+        </Space>
       </header>
+
+      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <AISummaryCard
+            overview={overview}
+            recentOpportunities={recentOpportunities}
+            onAskAI={() => openChat(aiContext)}
+          />
+        </Col>
+      </Row>
 
       <Row gutter={[24, 24]}>
         {/* Win Rate - Large Box at Top (Majority Width) */}
@@ -304,6 +404,56 @@ function DashboardOverview() {
           locale={{ emptyText: <Empty description="No recent opportunities" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
         />
       </div>
+
+      <AIChatComponent
+        open={isChatOpen}
+        onClose={closeChat}
+        context={aiContext}
+        title="Dashboard AI Assistant"
+        pageTitle="Dashboard Overview"
+      />
+
+      <Modal
+        title="Invite user to organisation"
+        open={inviteOpen}
+        onCancel={() => {
+          setInviteOpen(false);
+          inviteForm.resetFields();
+        }}
+        okText="Send Invite"
+        onOk={() => inviteForm.submit()}
+        okButtonProps={{ loading: isSendingInvite }}
+      >
+        <Form
+          form={inviteForm}
+          layout="vertical"
+          onFinish={onInviteSubmit}
+          initialValues={{ role: "SalesRep" }}
+        >
+          
+          <Form.Item
+            name="email"
+            label="Invitee Email"
+            rules={[
+              { required: true, message: "Email is required" },
+              { type: "email", message: "Enter a valid email" },
+            ]}
+          >
+            <Input placeholder="name@company.com" />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: "Role is required" }]}
+          >
+            <Select>
+              <Select.Option value="SalesRep">Sales Rep</Select.Option>
+              <Select.Option value="SalesManager">Sales Manager</Select.Option>
+              <Select.Option value="BusinessDevelopmentManager">Business Development Manager</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 }

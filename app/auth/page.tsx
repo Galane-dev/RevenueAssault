@@ -1,27 +1,79 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
-import { Input, Button, Form, message, Row, Col, Radio, Select, Divider } from "antd";
-import { useRouter } from "next/navigation";
+import { Input, Button, Form, message, Row, Col, Radio, Select, Divider, Alert } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useStyles } from "./style";
 import { useAuthActions, useAuthState } from "../providers/authProvider";
+import { Suspense } from "react";
 
-export default function AuthPage() {
+type RegScenario = "new" | "join" | "default";
+type InviteRole = "SalesRep" | "SalesManager" | "BusinessDevelopmentManager";
+type StoredInviteRole = InviteRole | null;
+
+const INVITE_ROLES: InviteRole[] = ["SalesRep", "SalesManager", "BusinessDevelopmentManager"];
+const INVITE_TENANT_ID_KEY = "inviteTenantId";
+const INVITE_ROLE_KEY = "inviteRole";
+
+const isInviteRole = (role: string | null): role is InviteRole => {
+  return !!role && INVITE_ROLES.includes(role as InviteRole);
+};
+
+const getStoredInviteRole = (): StoredInviteRole => {
+  if (typeof window === "undefined") return null;
+  const storedRole = sessionStorage.getItem(INVITE_ROLE_KEY);
+  return isInviteRole(storedRole) ? storedRole : null;
+};
+
+function AuthContent() {
   const { styles } = useStyles();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form] = Form.useForm();
-  
-  const [view, setView] = useState<"login" | "register">("login");
+
+  const tenantIdFromUrl = searchParams.get("tenantId");
+  const roleFromUrl = useMemo<InviteRole>(() => {
+    const roleParam = searchParams.get("role");
+    return isInviteRole(roleParam) ? roleParam : "SalesRep";
+  }, [searchParams]);
+  const invitedTenantId = tenantIdFromUrl || (typeof window !== "undefined" ? sessionStorage.getItem(INVITE_TENANT_ID_KEY) : null);
+  const invitedRole = isInviteRole(searchParams.get("role"))
+    ? roleFromUrl
+    : getStoredInviteRole() || "SalesRep";
+
+  const requestedView = searchParams.get("view");
+  const shouldOpenRegister = requestedView === "register" || !!invitedTenantId;
+
+  const [view, setView] = useState<"login" | "register">(shouldOpenRegister ? "register" : "login");
   // v2.0 Scenarios: new = Scenario A, join = Scenario B, default = Scenario C
-  const [regScenario, setRegScenario] = useState<"new" | "join" | "default">("new");
+  const [regScenario, setRegScenario] = useState<RegScenario>(invitedTenantId ? "join" : "new");
   
   const { login, register } = useAuthActions();
   const { isPending, isError, isAuthenticated } = useAuthState();
 
+  useEffect(() => {
+    if (!tenantIdFromUrl || typeof window === "undefined") return;
+
+    sessionStorage.setItem(INVITE_TENANT_ID_KEY, tenantIdFromUrl);
+    sessionStorage.setItem(INVITE_ROLE_KEY, roleFromUrl);
+
+    const cleanParams = new URLSearchParams(searchParams.toString());
+    cleanParams.delete("tenantId");
+    cleanParams.delete("role");
+    cleanParams.set("view", "register");
+
+    const cleanQuery = cleanParams.toString();
+    router.replace(cleanQuery ? `/auth?${cleanQuery}` : "/auth?view=register");
+  }, [tenantIdFromUrl, roleFromUrl, searchParams, router]);
+
   // 1. Success Redirect
   useEffect(() => {
     if (isAuthenticated) {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(INVITE_TENANT_ID_KEY);
+        sessionStorage.removeItem(INVITE_ROLE_KEY);
+      }
       message.success(view === "login" ? "Welcome back!" : "Account created successfully!");
       router.push("/dashboard");
     }
@@ -45,7 +97,12 @@ export default function AuthPage() {
     } else {
       // Clean up payload based on scenario to match v2.0 spec
       const payload = { ...values };
-      if (regScenario === "new") {
+
+      if (invitedTenantId) {
+        payload.tenantId = invitedTenantId;
+        payload.role = invitedRole;
+        delete payload.tenantName;
+      } else if (regScenario === "new") {
         delete payload.tenantId;
         delete payload.role; // Admin is assigned by default for new orgs
       } else if (regScenario === "join") {
@@ -60,8 +117,13 @@ export default function AuthPage() {
 
   // 4. Handle View Toggle & Reset
   const toggleView = () => {
-    setView(view === "login" ? "register" : "login");
+    const nextView = view === "login" ? "register" : "login";
+    setView(nextView);
     form.resetFields();
+
+    if (nextView === "register" && invitedTenantId) {
+      setRegScenario("join");
+    }
   };
 
   return (
@@ -100,48 +162,63 @@ export default function AuthPage() {
                   </Col>
                 </Row>
 
-                <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ORGANIZATION SETUP</span>}>
-                  <Radio.Group 
-                    value={regScenario} 
-                    onChange={(e) => {
-                        setRegScenario(e.target.value);
-                        form.setFieldsValue({ tenantId: undefined, tenantName: undefined });
-                    }}
-                    style={{ marginBottom: 8 }}
-                    disabled={isPending}
-                  >
-                    <Radio value="new">New Org</Radio>
-                    <Radio value="join">Join Existing</Radio>
-                    <Radio value="default">Default</Radio>
-                  </Radio.Group>
-                </Form.Item>
+                {invitedTenantId ? (
+                  <>
+                    <Alert
+                      type="info"
+                      message="You've been invited to join an organisation"
+                      style={{ paddingLeft:25, marginBottom: 12, backgroundColor: '#35c5004e', borderColor: '#089903', color: '#28fc11' }}
+                    />
+                    <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ASSIGNED ROLE</span>}>
+                      <Input value={invitedRole} disabled />
+                    </Form.Item>
+                  </>
+                ) : (
+                  <>
+                    <Form.Item label={<span style={{ color: '#8c8c8c', fontSize: '12px' }}>ORGANIZATION SETUP</span>}>
+                      <Radio.Group 
+                        value={regScenario} 
+                        onChange={(e) => {
+                            setRegScenario(e.target.value);
+                            form.setFieldsValue({ tenantId: undefined, tenantName: undefined });
+                        }}
+                        style={{ marginBottom: 8 }}
+                        disabled={isPending}
+                      >
+                        <Radio value="new">New Org</Radio>
+                        <Radio value="join">Join Existing</Radio>
+                        <Radio value="default">Default</Radio>
+                      </Radio.Group>
+                    </Form.Item>
 
-                {regScenario === "new" && (
-                  <Form.Item 
-                    name="tenantName" 
-                    rules={[{ required: true, message: "Please enter your company name" }]}
-                  >
-                    <Input placeholder="Organization / Company Name" disabled={isPending} />
-                  </Form.Item>
-                )}
+                    {regScenario === "new" && (
+                      <Form.Item 
+                        name="tenantName" 
+                        rules={[{ required: true, message: "Please enter your company name" }]}
+                      >
+                        <Input placeholder="Organization / Company Name" disabled={isPending} />
+                      </Form.Item>
+                    )}
 
-                {regScenario === "join" && (
-                  <Form.Item 
-                    name="tenantId" 
-                    rules={[{ required: true, message: "Please enter the Tenant ID" }]}
-                  >
-                    <Input placeholder="Paste Tenant ID (GUID)" disabled={isPending} />
-                  </Form.Item>
-                )}
+                    {regScenario === "join" && (
+                      <Form.Item 
+                        name="tenantId" 
+                        rules={[{ required: true, message: "Please enter the Tenant ID" }]}
+                      >
+                        <Input placeholder="Paste Tenant ID (GUID)" disabled={isPending} />
+                      </Form.Item>
+                    )}
 
-                {regScenario !== "new" && (
-                  <Form.Item name="role" initialValue="SalesRep">
-                    <Select disabled={isPending}>
-                      <Select.Option value="SalesRep">Sales Rep</Select.Option>
-                      <Select.Option value="SalesManager">Sales Manager</Select.Option>
-                      <Select.Option value="BusinessDevelopmentManager">BDM</Select.Option>
-                    </Select>
-                  </Form.Item>
+                    {regScenario !== "new" && (
+                      <Form.Item name="role" initialValue="SalesRep">
+                        <Select disabled={isPending}>
+                          <Select.Option value="SalesRep">Sales Rep</Select.Option>
+                          <Select.Option value="SalesManager">Sales Manager</Select.Option>
+                          <Select.Option value="BusinessDevelopmentManager">BDM</Select.Option>
+                        </Select>
+                      </Form.Item>
+                    )}
+                  </>
                 )}
                 <Divider style={{ margin: '12px 0', borderColor: '#303030' }} />
               </>
@@ -208,4 +285,12 @@ export default function AuthPage() {
       </main>
     </div>
   );
+}
+
+export default function AuthPage() {
+   return (
+      <Suspense fallback={<div>Loading...</div>}>
+         <AuthContent />
+      </Suspense>
+   );
 }

@@ -1,25 +1,33 @@
 "use client";
 
 import React, { useEffect, useContext, useState } from "react";
-import { Table, Typography, Tag, Button, Space, Tooltip, message } from "antd";
+import { Table, Typography, Tag, Button, Space, Tooltip, message, Drawer, Divider } from "antd";
 import { 
     SendOutlined, 
     CheckCircleOutlined, 
     CloseCircleOutlined, 
     PlusOutlined,
     EyeOutlined,
-    DeleteOutlined
+    DeleteOutlined,
+    MessageOutlined
 } from "@ant-design/icons";
 import { useStyles } from "../style";
 
 // Providers
 import { ProposalProvider, ProposalStateContext, ProposalActionContext } from "@/app/providers/proposalProvider";
+import { IProposal } from "@/app/providers/proposalProvider/context";
 import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
+import { NoteProvider } from "@/app/providers/noteProvider";
+import { EntityType } from "@/app/providers/noteProvider/context";
 
 // Components
 import CreateProposalModal from "../../components/modals/createProposal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIProposalsContext } from "@/app/providers/proposalProvider/useAIContext";
+import { NoteSection } from "@/app/components/notes/notes";
 
 const { Title, Text } = Typography;
 
@@ -34,9 +42,15 @@ function ProposalsContent() {
     const { styles } = useStyles();
     const { proposals, filters, totalCount, isPending } = useContext(ProposalStateContext);
     const actions = useContext(ProposalActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Proposals',
+    });
+    const aiContext = useAIProposalsContext();
 
     // --- State to control the Modal ---
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [selectedProposal, setSelectedProposal] = useState<IProposal | null>(null);
 
     useEffect(() => {
         actions?.getProposals(filters);
@@ -49,6 +63,11 @@ function ProposalsContent() {
         } catch (e) {
             message.error(`Failed to ${label} proposal`);
         }
+    };
+
+    const handleRowClick = (record: IProposal) => {
+        setSelectedProposal(record);
+        setIsDrawerOpen(true);
     };
 
     const columns = [
@@ -72,7 +91,7 @@ function ProposalsContent() {
             title: "TOTAL VALUE",
             dataIndex: "totalAmount",
             key: "totalAmount",
-            render: (val: number, record: any) => (
+            render: (val: number, record: IProposal) => (
                 <Text style={{ color: '#fff' }}>{record.currency} {val?.toLocaleString() || "0.00"}</Text>
             )
         },
@@ -83,10 +102,16 @@ function ProposalsContent() {
             render: (date: string) => <Text style={{ color: '#595959' }}>{new Date(date).toLocaleDateString()}</Text>
         },
         {
+            title: "NOTES",
+            key: "notes",
+            align: 'center' as const,
+            render: () => <MessageOutlined style={{ color: '#595959' }} />
+        },
+        {
             title: "ACTIONS",
             key: "actions",
-            render: (record: any) => (
-                <Space size="middle">
+            render: (_: unknown, record: IProposal) => (
+                <Space size="middle" onClick={(e) => e.stopPropagation()}>
                     
 
                     {record.status === 1 && (
@@ -158,17 +183,23 @@ function ProposalsContent() {
                         PROPOSALS & QUOTES
                     </Title>
                 </header>
-                <Can perform="CREATE_PROPOSAL">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsCreateModalOpen(true)} // Hooked up the click
-                    >
-                        CREATE PROPOSAL
-                    </Button>
-                </Can>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about proposals"
+                    />
+                    <Can perform="CREATE_PROPOSAL">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsCreateModalOpen(true)} // Hooked up the click
+                        >
+                            CREATE PROPOSAL
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <Table 
@@ -177,6 +208,9 @@ function ProposalsContent() {
                 loading={isPending}
                 rowKey="id"
                 className={styles.customTable}
+                onRow={(record) => ({
+                    onClick: () => handleRowClick(record),
+                })}
                 pagination={{
                     total: totalCount,
                     current: filters.pageNumber,
@@ -185,6 +219,51 @@ function ProposalsContent() {
                 }}
             />
 
+            <Drawer
+                title={
+                    <div>
+                        <Text type="secondary" style={{ fontSize: '10px', display: 'block' }}>PROPOSAL DETAILS</Text>
+                        <Title level={4} style={{ margin: 0, color: '#fff' }}>{selectedProposal?.title}</Title>
+                    </div>
+                }
+                placement="right"
+                width={500}
+                onClose={() => {
+                    setIsDrawerOpen(false);
+                    setSelectedProposal(null);
+                }}
+                open={isDrawerOpen}
+                styles={{
+                    body: { background: '#141414', padding: '24px' },
+                    header: { background: '#141414', borderBottom: '1px solid #303030' }
+                }}
+            >
+                {selectedProposal && (
+                    <>
+                        <div style={{ marginBottom: 24 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <Text type="secondary">Status: </Text>
+                                    <Tag color={STATUS_CONFIG[selectedProposal.status]?.color}>
+                                        {STATUS_CONFIG[selectedProposal.status]?.label}
+                                    </Tag>
+                                </div>
+                                <Text style={{ color: '#8c8c8c' }}>
+                                    Valid until: {new Date(selectedProposal.validUntil).toLocaleDateString()}
+                                </Text>
+                            </div>
+                            <Divider style={{ borderColor: '#303030' }} />
+                        </div>
+
+                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
+                        <NoteSection
+                            type={EntityType.Task}
+                            id={selectedProposal.id}
+                        />
+                    </>
+                )}
+            </Drawer>
+
             {/* Modal Component */}
             <Can perform="CREATE_PROPOSAL">
                 <CreateProposalModal 
@@ -192,6 +271,14 @@ function ProposalsContent() {
                     onCancel={() => setIsCreateModalOpen(false)} 
                 />
             </Can>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Proposals AI Assistant"
+                pageTitle="Proposals"
+            />
         </div>
     );
 }
@@ -200,7 +287,9 @@ export default withAuth(function ProposalsPage() {
     return (
         <OpportunityProvider>
             <ProposalProvider>
-                <ProposalsContent />
+                <NoteProvider>
+                    <ProposalsContent />
+                </NoteProvider>
             </ProposalProvider>
         </OpportunityProvider>
     );

@@ -102,14 +102,31 @@ export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         },
 
         // Renews a contract
-        renewContract: async (id: string, newEndDate: string) => {
-            try {
-                await getAxiosInstance().post(`/api/contracts/${id}/renewals`, { newEndDate });
-                getContracts(state.filters);
-            } catch (e) {
-                dispatch(setError());
-            }
-        },
+        // Renews a contract by updating its end date
+renewContract: async (id: string, newEndDate: string) => {
+    dispatch(setPending());
+    try {
+        // 1. Fetch the current contract to get all its existing data
+        const response = await getAxiosInstance().get(`/api/contracts/${id}`);
+        const currentContract = response.data;
+
+        // 2. Update the end date while keeping other fields intact
+        const updatedContract = {
+            ...currentContract,
+            endDate: newEndDate,
+            // You might want to flip autoRenew or update terms here if needed
+        };
+
+        // 3. Use the standard PUT endpoint to save the changes
+        await getAxiosInstance().put(`/api/contracts/${id}`, updatedContract);
+        
+        // 4. Refresh the list
+        getContracts(state.filters);
+    } catch (e) {
+        dispatch(setError());
+        throw e;
+    }
+},
 
         // Updates the filter state
         updateFilters: (newFilters: any) => {

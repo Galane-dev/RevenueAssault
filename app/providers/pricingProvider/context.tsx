@@ -1,10 +1,10 @@
 import { createContext } from 'react';
 
 export enum PricingRequestStatus {
-    Pending = 0,
-    InProgress = 1,
-    Completed = 2,
-    Cancelled = 3
+    Pending = 1,
+    InProgress = 2,
+    Completed = 3,
+    Cancelled = 4
 }
 
 export enum PricingPriority {
@@ -27,6 +27,10 @@ export interface IPricingRequest {
     status: PricingRequestStatus;
     requiredByDate: string;
     createdAt: string;
+    opportunityTitle?: string; 
+    requestedByName?: string;
+    assignedToName?: string;
+    requestNumber?: string;
 }
 
 export interface IPricingStateContext {
@@ -49,6 +53,8 @@ export interface IPricingActionContext {
     assignRequest: (id: string, userId: string) => Promise<void>;
     completeRequest: (id: string) => Promise<void>;
     updateFilters: (filters: Partial<IPricingStateContext['filters']>) => void;
+    getPending: () => Promise<void>;
+    getMyRequests: () => Promise<void>;
 }
 
 export const INITIAL_STATE: IPricingStateContext = {
@@ -58,7 +64,7 @@ export const INITIAL_STATE: IPricingStateContext = {
     totalCount: 0,
     filters: {
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 5
     }
 };
 

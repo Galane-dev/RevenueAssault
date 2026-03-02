@@ -19,16 +19,23 @@ import dayjs from "dayjs";
 // Providers
 import { ReportProvider, ReportStateContext, ReportActionContext } from "../../providers/reportsProvider";
 import { IReportStateContext, IReportActionContext } from "@/app/providers/reportsProvider/context";
+import { useAIReportsContext } from "@/app/providers/reportsProvider/useAIContext";
 
 // Components
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
+import { useAIChat } from "@/app/hooks/useAIChat";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 function SalesDashboardContent() {
     const { styles } = useStyles();
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Reports',
+    });
+    const aiContext = useAIReportsContext();
     
     // Explicit Type Assertion to resolve 'unknown' error
     const { 
@@ -134,6 +141,10 @@ function SalesDashboardContent() {
                 </div>
                 
                 <Space size="middle">
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about reports"
+                    />
                     <RangePicker 
                         value={
                             filters.startDate && filters.endDate 
@@ -235,7 +246,7 @@ function SalesDashboardContent() {
                         <Table 
                             dataSource={opportunityReport} 
                             columns={columns} 
-                            pagination={{ pageSize: 6 }} 
+                            pagination={{ pageSize: 7 }} 
                             size="small" 
                             loading={isPending}
                             rowKey="id"
@@ -244,6 +255,14 @@ function SalesDashboardContent() {
                     </Card>
                 </Col>
             </Row>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Reports AI Assistant"
+                pageTitle="Reports"
+            />
         </div>
     );
 }

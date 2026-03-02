@@ -7,6 +7,7 @@ import {
     PlusOutlined, 
     DeleteOutlined,
     EyeOutlined,
+    MessageOutlined,
     FilePdfOutlined,
     CalendarOutlined,
     DollarOutlined,
@@ -19,13 +20,19 @@ import { useStyles } from "../style";
 // Providers
 import { ContractProvider, ContractStateContext, ContractActionContext } from "@/app/providers/contractProvider";
 import { ClientProvider } from "@/app/providers/clientProvider";
+import { NoteProvider } from "@/app/providers/noteProvider";
+import { EntityType } from "@/app/providers/noteProvider/context";
 
 // Components
 import CreateContractModal from "../../components/modals/createContractModal";
+import { AIChatComponent, ChatButton } from "../../components/ai";
 import { Can } from "../../components/auth/can";
 import { withAuth } from "../../hoc/withAuth";
 import { OpportunityProvider } from "@/app/providers/opportunitiesProvider";
 import { ProposalProvider } from "@/app/providers/proposalProvider";
+import { useAIChat } from "@/app/hooks/useAIChat";
+import { useAIContractsContext } from "@/app/providers/contractProvider/useAIContext";
+import { NoteSection } from "@/app/components/notes/notes";
 
 const { Title, Text } = Typography;
 
@@ -40,6 +47,10 @@ function ContractsContent() {
     const { styles } = useStyles();
     const { contracts, filters, totalCount, isPending } = useContext(ContractStateContext);
     const actions = useContext(ContractActionContext);
+    const { isChatOpen, openChat, closeChat } = useAIChat({
+        pageTitle: 'Contracts',
+    });
+    const aiContext = useAIContractsContext();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -176,6 +187,12 @@ function ContractsContent() {
             },
         },
         {
+            title: "NOTES",
+            key: "notes",
+            align: 'center' as const,
+            render: () => <MessageOutlined style={{ color: '#595959' }} />
+        },
+        {
             title: "ACTIONS",
             key: "actions",
             align: 'right' as const,
@@ -273,17 +290,23 @@ function ContractsContent() {
                         CONTRACTS & AGREEMENTS
                     </Title>
                 </header>
-                <Can perform="CREATE_CONTRACT">
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        className={styles.primaryButton} 
-                        size="large"
-                        onClick={() => setIsCreateModalOpen(true)}
-                    >
-                        CREATE CONTRACT
-                    </Button>
-                </Can>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <ChatButton
+                        onClick={() => openChat(aiContext)}
+                        title="Ask AI about contracts"
+                    />
+                    <Can perform="CREATE_CONTRACT">
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />} 
+                            className={styles.primaryButton} 
+                            size="large"
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
+                            CREATE CONTRACT
+                        </Button>
+                    </Can>
+                </div>
             </div>
 
             <div className={styles.filterSection} style={{ marginBottom: 24, display: 'flex', gap: '16px' }}>
@@ -396,6 +419,13 @@ function ContractsContent() {
                             </Text>
                         </div>
 
+                        <Divider style={{ borderColor: '#303030' }} />
+                        <Title level={5} style={{ color: '#d9d9d9', marginBottom: 16 }}>Activity Notes</Title>
+                        <NoteSection
+                            type={EntityType.Task}
+                            id={selectedContract.id}
+                        />
+
                         {selectedContract.status === 2 && (
                             <Can perform="RENEW_CONTRACT">
                                 <Divider style={{ borderColor: '#303030' }} />
@@ -428,6 +458,14 @@ function ContractsContent() {
                     onCancel={() => setIsCreateModalOpen(false)} 
                 />
             </Can>
+
+            <AIChatComponent
+                open={isChatOpen}
+                onClose={closeChat}
+                context={aiContext}
+                title="Contracts AI Assistant"
+                pageTitle="Contracts"
+            />
         </div>
     );
 }
@@ -441,7 +479,9 @@ export default withAuth(function ContractsPage() {
             <OpportunityProvider>
                 <ProposalProvider>
                     <ContractProvider>
-                        <ContractsContent />
+                        <NoteProvider>
+                            <ContractsContent />
+                        </NoteProvider>
                     </ContractProvider>
                 </ProposalProvider>
                 

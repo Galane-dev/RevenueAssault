@@ -52,7 +52,7 @@ export const INITIAL_STATE: IDocumentStateContext = {
     totalCount: 0,
     filters: {
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 6
     }
 };
 

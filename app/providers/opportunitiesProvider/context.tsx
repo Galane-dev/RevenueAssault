@@ -49,7 +49,7 @@ export const INITIAL_STATE: IOpportunityStateContext = {
     filters: {
         searchTerm: "",
         pageNumber: 1,
-        pageSize: 10
+        pageSize: 7
     }
 };
 
